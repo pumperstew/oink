@@ -32,12 +32,19 @@ namespace chess
         const bitboard fullrank = 0x00000000000000ff;
         const int NUM_SQUARES = 64;
         const int BOARD_SIZE  = 8;
+		bitboard singleBit[BOARD_SIZE];
     }
 
 	namespace ranks
 	{
-		const int seventh = 6;
+		const int first   = 0;
 		const int second  = 1;
+		const int third   = 2;
+		const int fourth  = 3;
+		const int fifth   = 4;
+		const int sixth   = 5;
+		const int seventh = 6;
+		const int eighth  = 7;
 	}
 
     namespace sides

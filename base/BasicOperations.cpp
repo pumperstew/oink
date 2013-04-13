@@ -82,7 +82,7 @@ namespace chess
             return pos | ((pos & moves::rank_masks[rank]) >> 8); 
     }
 
-    //Get occupancy of given rank [0,7].
+    //Get occupancy of given rank [ranks::first, ranks::eighth].
 	//Returns occupancy on [0,255] in lowest eight bits of return value.
     bitboard GetRankOccupancy(bitboard b, int rank)
     {
@@ -91,7 +91,7 @@ namespace chess
 
 	//Get occupancy of given file [0,7].
 	//Returns occupancy on [0,255] in lowest eight bits of return value.
-	//non-trivial, current impl. isn't great. OINK_TODO: replace with magic multiplier implementation
+	//non-trivial, current impl. isn't great. OINK_TODO: replace with magic multiplier implementation, which will be much faster.
     bitboard GetFileOccupancy(bitboard b, int file)
     {
         bitboard occ = 0;

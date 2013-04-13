@@ -3,6 +3,7 @@
 
 namespace chess
 {
+	//OINK_TODO: probably better to specialise for pawns to prevent branch for all other pieces.
 	void GenerateMoves(bitboard destinations, Move &move, MoveVector &moves, const Position &position, int side, bool promoting = false)
 	{
 		while (destinations)
@@ -103,63 +104,42 @@ namespace chess
 			IndexToRankAndFile(square, rank, file);
 
 			bitboard rankOccupancy = GetRankOccupancy(position.wholeBoard, rank);
-			bitboard destinations = moves::rook_horiz_moves[square][rankOccupancy] & ~position.sides[side];
-			GenerateMoves(destinations, move, moves, position, side);
-
 			bitboard fileOccupancy = GetFileOccupancy(position.wholeBoard, file);
-			destinations = moves::rook_vert_moves[square][fileOccupancy] & ~position.sides[side];
+			bitboard destinations = (moves::rook_horiz_moves[square][rankOccupancy] | 
+									 moves::rook_vert_moves[square][fileOccupancy]) 
+									 & ~position.sides[side];
+
 			GenerateMoves(destinations, move, moves, position, side);
-
-			/*
-            bitboard this_rook = GetAndClearFirstSetBitReturningIndex(rooks, sq);
-            //std::cout << "rook is on " << print_square(sq) << std::endl;
-
-            int rank, file;
-			IndexToRankAndFile(sq, rank, file);
-
-            bitboard rank_occ = GetRankOccupancy(pos.wholeBoard, rank); //horizontal
-            bitboard moves = moves::rook_horiz_moves[sq][rank_occ]; 
-
-			bitboard file_occ = GetFileOccupancy(pos.wholeBoard, file); //vertical
-            moves |= moves::rook_vert_moves[sq][file_occ]; 
-
-			moves &= (pos.GetOtherSideWithoutKing(side) | pos.GetEmptySquares());
-
-            while(moves)
-            {
-                Board new_pos = pos;
-                new_pos.rooks[side] = (new_pos.rooks[side] | GetAndClearFirstSetBit(moves))
-                    & ~this_rook;
-                new_pos.RemoveCaptured(side, new_pos.rooks[side]);
-                results.push_back(new_pos);
-            }*/
         }
 		return moves;
     }
 
-    /*
-    void MoveGenerator::GenerateBishopMoves(const Board &pos, PositionVector &results, int side)
+    MoveVector MoveGenerator::GenerateBishopMoves(const Position &position, int side)
     {
-        bitboard bishops = pos.bishops[side];
+        MoveVector moves;
+		Move move;
+		move.SetPiece(pieces::BISHOPS[side]);
+
+        bitboard bishops = position.bishops[side];
         while (bishops)
         {
-            int sq, rank, file;
-            bitboard this_bishop = GetAndClearFirstSetBitReturningIndex(bishops, sq);
-            //std::cout << "bishop is on " << print_square(sq) << std::endl;
-            IndexToRankAndFile(sq, rank, file);
+			int square = GetFirstIndexAndClear(bishops);
+			move.SetSource(square);
+
+			int rank, file;
+			IndexToRankAndFile(square, rank, file);
+			//OINK_TODO
+			//bitboard diagonalOccupancy = GetDiagonalOccupancy(position.wholeBoard, square);
+			//bitboard destinations = moves::diag_moves[square][diagonalOccupancy] & ~position.sides[side];
+			//GenerateMoves(destinations, move, moves, position, side);
         }
+		return moves;
     }
-	*/
     
 	/*
-	void MoveGenerator::GenerateAllMoves(const Board &pos, PositionVector &results)
+	MoveVector MoveGenerator::GenerateAllMoves(const Position &position, int side)
     {
-        //king_moves(pos, results, sides::white);
-        //std::cout << "GENERATING PAWN MOVES\n";
-        //pawn_moves(pos, results, sides::white);
-        //pawn_moves(pos, results, sides::black);
-        //rook_moves(pos, results, sides::white);
-		GenerateKnightMoves(pos, results, sides::white);
+        MoveVector moves = GenerateKingMoves(position, side);
 
 		for (auto const &board : results)
 		{
