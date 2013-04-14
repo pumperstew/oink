@@ -105,6 +105,14 @@ void CheckMovesDestinationVarying(const MoveVector &moves, int source, Piece pie
 	boost::for_each(destinations, [&](int destination) { CheckMoveIsInList(moves, source, destination, piece, captured, promotion); } );
 }
 
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//********************************************************** KNIGHTS ***********************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+
 //minimal targets: 2
 TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesForKnightOn_a8_OnOtherwiseClearBoard)
 {
@@ -153,6 +161,14 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	CheckMoveIsInList(moves, squares::a8, squares::b6, pieces::WHITE_KNIGHT, pieces::NONE);
 }
 
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//************************************************************ KINGS ***********************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+
 TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForKingOn_a8_OnOtherwiseClearBoard)
 {
 	SetWhiteKingAt(position, squares::a8);
@@ -174,6 +190,14 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KING, pieces::NONE,
 		ba::list_of(squares::e6)(squares::e4)(squares::f5)(squares::d5)(squares::f6)(squares::d6)(squares::d4)(squares::f4));
 }
+
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//************************************************************ PAWNS ***********************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
 
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_OnOtherwiseClearBoard)
 {
@@ -250,6 +274,14 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	CheckMoveIsInList(moves, squares::c7, squares::b8, pieces::WHITE_PAWN, pieces::BLACK_BISHOP, pieces::WHITE_BISHOP);
 	CheckMoveIsInList(moves, squares::c7, squares::b8, pieces::WHITE_PAWN, pieces::BLACK_BISHOP, pieces::WHITE_KNIGHT);
 }
+
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//************************************************************ ROOKS ***********************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForRookOn_a8_OnOtherwiseClearBoard)
 {
@@ -328,6 +360,15 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 				   (squares::a7)(squares::a6)(squares::a5)(squares::a4));
 }
 
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//********************************************************** BISHOPS ***********************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+
+//Corners
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_OnOtherwiseClearBoard)
 {
 	SetWhiteBishopAt(position, squares::a1);
@@ -339,6 +380,43 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 		ba::list_of(squares::b2)(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8));
 }
 
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_h8_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::h8);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::b2)(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::a1));
+}
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a8_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::a8);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::h1));
+}
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_h1_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::h1);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::a8));
+}
+
+//Next to corners
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_b2_OnOtherwiseClearBoard)
 {
 	SetWhiteBishopAt(position, squares::b2);
@@ -350,6 +428,43 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 		ba::list_of(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8)(squares::a1)(squares::c1)(squares::a3));
 }
 
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_g7_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::g7);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(9, moves.size());
+	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::b2)(squares::h8)(squares::a1)(squares::h6)(squares::f8));
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_b7_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::b7);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(9, moves.size());
+	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::a8)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::h1)(squares::a6)(squares::c8));
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_g2_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::g2);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(9, moves.size());
+	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::a8)(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::h1)(squares::h3)(squares::f1));
+}
+
+//Central
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_OnOtherwiseClearBoard)
 {
 	SetWhiteBishopAt(position, squares::e5);
@@ -362,6 +477,106 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
 }
 
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e4_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::e4);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(13, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f5)(squares::g6)(squares::h7)(squares::d3)(squares::c2)(squares::b1)
+				   (squares::d5)(squares::c6)(squares::b7)(squares::a8)(squares::f3)(squares::g2)(squares::h1));
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_d4_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::d4);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(13, moves.size());
+	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::e5)(squares::f6)(squares::g7)(squares::h8)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::c5)(squares::b6)(squares::a7)(squares::e3)(squares::f2)(squares::g1));
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_d5_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::d5);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(13, moves.size());
+	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::e6)(squares::f7)(squares::g8)(squares::c4)(squares::b3)(squares::a2)
+				   (squares::c6)(squares::b7)(squares::a8)(squares::e4)(squares::f3)(squares::g2)(squares::h1));
+}
+
+//Down left capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_b2)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::b2);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(12, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)
+				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+//Up left capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_c7)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::c7);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(12, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::f4)(squares::g3)(squares::h2));
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+//Down right capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f4)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f4);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(11, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::c7)(squares::b8));
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+//Up right capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f6)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f6);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(11, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f4)(squares::g3)(squares::h2)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::c7)(squares::b8));
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+//Up right capture from corner
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_WithBlackPieceOn_c3)
 {
 	SetWhiteBishopAt(position, squares::a1);
@@ -386,48 +601,6 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 		ba::list_of(squares::d5)(squares::e6)(squares::f7)(squares::g8)(squares::b5)(squares::a6)(squares::d3)
 				   (squares::e2)(squares::f1));
 	CheckMoveIsInList(moves, squares::c4, squares::b3, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-}
-
-TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_b2)
-{
-	SetWhiteBishopAt(position, squares::e5);
-	SetBlackPawnAt(position, squares::b2);
-
-	auto moves = generator.GenerateBishopMoves(position, sides::white);
-
-	ASSERT_EQ(12, moves.size());
-	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
-		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)
-				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
-	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-}
-
-TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_c7)
-{
-	SetWhiteBishopAt(position, squares::e5);
-	SetBlackPawnAt(position, squares::c7);
-
-	auto moves = generator.GenerateBishopMoves(position, sides::white);
-
-	ASSERT_EQ(12, moves.size());
-	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
-		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
-				   (squares::d6)(squares::f4)(squares::g3)(squares::h2));
-	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-}
-
-TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f4)
-{
-	SetWhiteBishopAt(position, squares::e5);
-	SetBlackPawnAt(position, squares::f4);
-
-	auto moves = generator.GenerateBishopMoves(position, sides::white);
-
-	ASSERT_EQ(11, moves.size());
-	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
-		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
-				   (squares::d6)(squares::c7)(squares::b8));
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
 }
 
 //No clash, so same as clear board.
