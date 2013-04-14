@@ -67,7 +67,7 @@ INSTANTIATE_TEST_CASE_P(SingleSquareInputs,
 
 int main(int argc, char **argv)
 {
-  //::testing::GTEST_FLAG(catch_exceptions) = false; //Useful for debugging test crashes, as it lets us actually use the debugger properly
+  ::testing::GTEST_FLAG(catch_exceptions) = false; //Useful for debugging test crashes, as it lets us actually use the debugger properly
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

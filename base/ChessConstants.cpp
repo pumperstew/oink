@@ -1,10 +1,18 @@
 #include "ChessConstants.hpp"
 #include "BasicOperations.hpp"
+#include "Display.hpp"
+
+#include <cassert>
 
 namespace chess
 {
 	using namespace util;
 	using namespace moves;
+
+	namespace util
+	{
+		bitboard singleBit[BOARD_SIZE];
+	}
 
     namespace moves
     {
@@ -13,9 +21,10 @@ namespace chess
         bitboard file_masks[util::BOARD_SIZE];
         bitboard rank_masks[util::BOARD_SIZE];
         bitboard knight_moves[util::NUM_SQUARES];
-        bitboard diag_moves[util::NUM_SQUARES][256];
-        bitboard diag_masks_a1h8[util::NUM_SQUARES];
-        bitboard diag_masks_a8h1[util::NUM_SQUARES];
+        bitboard diag_moves_a1h8[util::NUM_SQUARES][256];
+		bitboard diag_moves_a8h1[util::NUM_SQUARES][256];
+        bitboard diagMasks_a1h8[util::NUM_SQUARES];
+        bitboard diagMasks_a8h1[util::NUM_SQUARES];
     }
 
 	void GenerateRankAndFileMasks()
@@ -105,6 +114,83 @@ namespace chess
 		return downMoves;
 	}
 
+	bitboard GenerateDiagonal_a1h8_Moves(bitboard diagonalOcc_a1h8, bitboard bitsOnToUpAndRight, bitboard bitsOnToDownAndLeft)
+	{
+		bitboard upRightMoves  = diagonalOcc_a1h8 & bitsOnToUpAndRight;
+		bitboard downLeftMoves = diagonalOcc_a1h8 & bitsOnToDownAndLeft;
+
+		/*auto foo = (
+            ( (upRightMoves << 9) |  (upRightMoves << 18) | (upRightMoves << 27) 
+            | (upRightMoves << 36) | (upRightMoves << 45) | (upRightMoves << 54) ));*/
+
+		/*if (diagonalOcc_a1h8 == 1)
+		{
+			PrintBitboard(foo);
+			PrintBitboard(bitsOnToUpAndRight);
+			PrintBitboard(bitsOnToDownAndLeft);
+		}*/
+
+		upRightMoves = (
+            ( (upRightMoves << 9) |  (upRightMoves << 18) | (upRightMoves << 27) 
+            | (upRightMoves << 36) | (upRightMoves << 45) | (upRightMoves << 54) )
+            & bitsOnToUpAndRight)
+            ^ bitsOnToUpAndRight;
+
+		downLeftMoves = (
+            ( (downLeftMoves >> 9) |  (downLeftMoves >> 18) | (downLeftMoves >> 27) 
+            | (downLeftMoves >> 36) | (downLeftMoves >> 45) | (downLeftMoves >> 54) )
+            & bitsOnToDownAndLeft)
+            ^ bitsOnToDownAndLeft;
+
+		return upRightMoves | downLeftMoves;
+	}
+
+	bitboard GenerateDiagonal_a8h1_Moves(bitboard diagonalOcc_a8h1, bitboard bitsOnToUpAndLeft, bitboard bitsOnToDownAndRight)
+	{
+		bitboard upAndLeftMoves    = diagonalOcc_a8h1 & bitsOnToUpAndLeft;
+		bitboard squaresOccupiedDownAndRight = diagonalOcc_a8h1 & bitsOnToDownAndRight;
+
+		//upAndLeftMoves = (
+  //          ( (upAndLeftMoves << 9) |  (upAndLeftMoves << 18) | (upAndLeftMoves << 27) 
+  //          | (upAndLeftMoves << 36) | (upAndLeftMoves << 45) | (upAndLeftMoves << 54) )
+  //          & bitsOnToUpAndLeft)
+  //          ^ bitsOnToUpAndLeft;
+
+		upAndLeftMoves = (
+            ( (upAndLeftMoves << 7) |  (upAndLeftMoves << 14) | (upAndLeftMoves << 21) 
+            | (upAndLeftMoves << 28) | (upAndLeftMoves << 35) | (upAndLeftMoves << 42) )
+            & bitsOnToUpAndLeft)
+            ^ bitsOnToUpAndLeft;
+
+		/*if (diagonalOcc_a8h1 ==4194304) {
+			PrintBitboard(bitsOnToDownAndRight, "bitsOnToDownAndRight", squares::e5);
+			PrintBitboard(diagonalOcc_a8h1, "diagonalOcc_a8h1", squares::e5);
+			PrintBitboard(squaresOccupiedDownAndRight, "squaresOccupiedDownAndRight", squares::e5);
+			PrintBitboard(squaresOccupiedDownAndRight >> 7, "squaresOccupiedDownAndRight >> 9", squares::e5);
+			PrintBitboard(
+				( (squaresOccupiedDownAndRight >> 7) |  (squaresOccupiedDownAndRight >> 14) | (squaresOccupiedDownAndRight >> 21) 
+				| (squaresOccupiedDownAndRight >> 28) | (squaresOccupiedDownAndRight >> 35) | (squaresOccupiedDownAndRight >> 42) ) );
+
+			PrintBitboard( (
+				( (squaresOccupiedDownAndRight >> 7) |  (squaresOccupiedDownAndRight >> 14) | (squaresOccupiedDownAndRight >> 21) 
+				| (squaresOccupiedDownAndRight >> 28) | (squaresOccupiedDownAndRight >> 35) | (squaresOccupiedDownAndRight >> 42) ) &   bitsOnToDownAndRight)
+            ^ bitsOnToDownAndRight );
+
+		}*/
+
+		bitboard downAndRightMoves = (
+            ( (squaresOccupiedDownAndRight >> 7) |  (squaresOccupiedDownAndRight >> 14) | (squaresOccupiedDownAndRight >> 21) 
+            | (squaresOccupiedDownAndRight >> 28) | (squaresOccupiedDownAndRight >> 35) | (squaresOccupiedDownAndRight >> 42) )
+            & bitsOnToDownAndRight)
+            ^ bitsOnToDownAndRight;
+
+		/*if (diagonalOcc_a8h1 ==4194304) {
+			PrintBitboard(downAndRightMoves);
+		}*/
+
+		return upAndLeftMoves | downAndRightMoves;
+	}
+
 	bitboard RotateOccupancyVertical(bitboard occupancy /*in low eight bits*/, int desiredFile)
 	{
 		bitboard vertOcc = util::nil; //vertical occupancy is a bit tricky, as bits not contiguous
@@ -114,6 +200,76 @@ namespace chess
             vertOcc |= (stateOfBit << RankFileToIndex(j, desiredFile)); //shift back up to correct point. Here, j = rank.
         }
 		return vertOcc;
+	}
+
+	const int a1h8_direction = 0, a8h1_direction = 1, rankDiagIndex = 0, fileDiagIndex = 1;
+
+	bitboard RotateOccupanyDiagonal_a1h8(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
+	{
+		bitboard diagonalOcc_a1h8 = util::nil;
+		int i = 0;
+        for (int j = diagonalStart[a1h8_direction][0]; j < diagonalLength[a1h8_direction]; ++j, ++i) //go up + right, rank loop
+		{
+            bitboard stateOfBit = (occupancy & singleBit[i]) >> i;
+            int currentFile = diagonalStart[a1h8_direction][fileDiagIndex] + (j - diagonalStart[a1h8_direction][rankDiagIndex]); //file = starting file on diag + steps
+            diagonalOcc_a1h8 |= (stateOfBit << RankFileToIndex(j, currentFile));
+        }
+		return diagonalOcc_a1h8;
+	}
+
+	bitboard RotateOccupanyDiagonal_a8h1(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
+	{
+		bitboard diagonalOcc_a8h1 = util::nil;
+		int i = 0;
+		int x = diagonalLength[a8h1_direction];
+		int y = diagonalStart[a8h1_direction][0];
+		for (int j = diagonalStart[a8h1_direction][0]; j < diagonalLength[a8h1_direction]; ++j, ++i) //start at same sq, go up + left
+		{
+			bitboard stateOfBit = (occupancy & singleBit[i]);
+
+			bitboard shiftedUpRanks = stateOfBit << RankFileToIndex(8-i, 0);
+
+			diagonalOcc_a8h1 |= shiftedUpRanks;
+
+			/*bitboard thisbit = (occupancy & singleBit[i]);
+			thisbit = thisbit >> i;
+			int currentFile = diagonalStart[a8h1_direction][1] - (j - diagonalStart[a8h1_direction][0]);
+			diagonalOcc_a8h1 |= (thisbit << RankFileToIndex(j, currentFile));*/
+
+			if (diagonalStart[1][0] == 1 && diagonalStart[1][1] == 7)
+			{
+				//PrintBitboard(diagonalOcc_a8h1);
+			}
+		}
+		if (diagonalStart[1][0] == 1 && diagonalStart[1][1] == 7)
+			{
+				//PrintBitboard(diagonalOcc_a8h1, "done");
+			}
+
+		return diagonalOcc_a8h1;
+	}
+
+	void GenerateDiagonalStartAndLength(int rank, int file, int diagonalStart[2][2], int diagonalLength[2])
+	{
+		 //OINK_TODO: fix rank>file branch??
+		if (rank > file) //square we're considering (i) is in upper/left diagonal half
+		{
+            diagonalStart[a1h8_direction][rankDiagIndex] = rank - file; //Starting rank of the diag in a1h8 direction
+            diagonalStart[a1h8_direction][fileDiagIndex] = 0;           //Starting file is zero, as rank > file
+            diagonalStart[a8h1_direction][rankDiagIndex] = 0;           //Starting rank in a8h1 (other) direction is zero too.
+            diagonalStart[a8h1_direction][fileDiagIndex] = rank + file; //Starting file in a8h1 direction.
+            diagonalLength[a1h8_direction] = util::BOARD_SIZE - diagonalStart[a1h8_direction][rankDiagIndex]; //8 - starting rank.
+            diagonalLength[a8h1_direction] = util::BOARD_SIZE - diagonalStart[a8h1_direction][fileDiagIndex];
+        } 
+		else //See above - symmtery.
+		{
+            diagonalStart[a1h8_direction][rankDiagIndex] = 0;
+            diagonalStart[a1h8_direction][fileDiagIndex] = file - rank;
+            diagonalStart[a8h1_direction][rankDiagIndex] = rank - ((util::BOARD_SIZE - 1) - file); //file + rank;
+            diagonalStart[a8h1_direction][fileDiagIndex] = util::BOARD_SIZE - 1;
+            diagonalLength[a1h8_direction] = util::BOARD_SIZE - diagonalStart[a1h8_direction][fileDiagIndex];
+            diagonalLength[a8h1_direction] = util::BOARD_SIZE - diagonalStart[a8h1_direction][rankDiagIndex];
+        }
 	}
 
     void InitializeConstants()
@@ -128,111 +284,106 @@ namespace chess
         //===================== Generate moves=======================
         for (int i = 0; i < util::NUM_SQUARES; ++i) //loop over all squares
 		{ 
-            bitboard this_sq = util::one << i;
+            bitboard currentSquareBit = util::one << i;
             int rank, file;
             IndexToRankAndFile(i, rank, file);
            
-			GenerateKnightMoves(i, rank, file, this_sq);
+			GenerateKnightMoves(i, rank, file, currentSquareBit);
 
             //============== Generate slider moves (horiz, vert, diag) ==========
 
 			//Generate masks with bits on to the right and to the left of the current square, on its rank.
-            const bitboard to_right = TurnOnBitsToRight(this_sq, file);
-			const bitboard to_left = TurnOnBitsToLeft(this_sq, file);
-			bitboard to_up = 0, to_down = 0;
-           
-            diag_masks_a1h8[i] = 0, diag_masks_a8h1[i] = 0;
+            const bitboard bitsOnToRight = TurnOnBitsToRight(currentSquareBit, file);
+			const bitboard bitsOnToLeft = TurnOnBitsToLeft(currentSquareBit, file);
+			bitboard bitsOnToUp = util::nil, bitsOnToDown = util::nil;
+			bitboard bitsOnToUpAndRight = util::nil, bitsOnToDownAndLeft = util::nil;
+			bitboard bitsOnToUpAndLeft = util::nil, bitsOnToDownAndRight = util::nil;
 
-            //Gen masks with bits 1 on both diagonals intersecting the current square,
-            //also get masks for up/down corresponding to to_right/left in same loop.
-            for (int j = 0; j < util::BOARD_SIZE - rank; ++j) {
-                to_up |= (this_sq << ((j+1)*util::BOARD_SIZE));
-				//OINK_TODO: (j*util::BOARD_SIZE + j) same as:
-				//int offset = 9 * j; since 8n + n = 9n.
-                diag_masks_a1h8[i] |= (this_sq << (j*util::BOARD_SIZE + j)) & rank_masks[rank+j]; //up and right //
-                diag_masks_a8h1[i] |= (this_sq << (j*util::BOARD_SIZE - j)) & rank_masks[rank+j]; //up and left
+            //Generate masks with bits 1 on both diagonals intersecting the current square.
+            //Also get masks for bitsOnToUp/bitsOnToDown corresponding to bitsOnToRight/bitsOnToLeft in same loop.
+            for (int offset = 1; offset < util::BOARD_SIZE - rank; ++offset)
+			{
+                bitsOnToUp |= (currentSquareBit << RankFileToIndex(offset, 0)); //<< 8, << 16, << 24, ... (shift up ranks)
+				
+				//Up and right: take bit, shift up along the diagonal (<< 9, << 18, << 27, ...), and mask off other ranks.
+				//The shifts are non-intuitive, because to go *right*, we shift 9 (not 7), because a1 is LSB, so going 
+				//right on the board means shifting *left*. Basically everything is mirrored along the y-axis in bit-repro.
+				//(final masking step is necessary because we loop further than we need here, because we generate the up moves too)
+				bitsOnToUpAndRight |= (currentSquareBit << RankFileToIndex(offset, offset)) & rank_masks[rank + offset];
+				//Up and left. Same as a1h8, but file offset is negative, so shifts are (<< 7, << 14, << 21, ...)
+                bitsOnToUpAndLeft |= (currentSquareBit << RankFileToIndex(offset, -offset)) & rank_masks[rank + offset];
             }
 
-			auto foo = diag_masks_a1h8[i];
+            for (int offset = 1; offset <= rank; ++offset)
+			{
+                bitsOnToDown |= (currentSquareBit >> (offset*util::BOARD_SIZE)); //>> 8, >> 16, >> 24, ... (shift down ranks)
 
-            for (int j = 0; j <= rank; ++j) {
-                to_down |= (this_sq >> ((j+1)*util::BOARD_SIZE));
-                diag_masks_a1h8[i] |= (this_sq >> (j*util::BOARD_SIZE + j)) & rank_masks[rank-j]; //down and left
-                diag_masks_a8h1[i] |= (this_sq >> (j*util::BOARD_SIZE - j)) & rank_masks[rank-j]; //down and right
+				//Down and left
+                bitsOnToDownAndLeft |= (currentSquareBit >> RankFileToIndex(offset, offset)) & rank_masks[rank - offset];
+				//Down and right - file offset is 
+                bitsOnToDownAndRight |= (currentSquareBit >> RankFileToIndex(offset, -offset)) & rank_masks[rank - offset];
             }
 
-			auto bar = diag_masks_a1h8[i];
-            //std::cout << print_square(i) << std::endl;
-            //print_bitboard(diag_a1h8);
+			diagMasks_a1h8[i] = bitsOnToUpAndRight | bitsOnToDownAndLeft;
+			diagMasks_a8h1[i] = bitsOnToUpAndLeft | bitsOnToDownAndRight;
+
+			//for a1h8, we go up + right. for a8h1 we go up + left (not down + right)
+            int diagonalStart[2][2]; //{a1h8, a8h1}{rank, file}
+            int diagonalLength[2];   //{a1h8, a8h1}
+			/*if (rank == 4 && file == 4)
+			{
+				PrintBitboard(currentSquareBit);
+			}*/
+			GenerateDiagonalStartAndLength(rank, file, diagonalStart, diagonalLength);
 
             //loop over all occupancy permutations on ranks/files:
             for (bitboard occ = 0; occ <= util::fullrank; ++occ) 
 			{ 
 				bitboard thisRankOccupancy = occ << (rank<<3);
-                const bitboard rightSliderMoves = GenerateRightSliderMoves(thisRankOccupancy, to_right);
-                const bitboard leftSliderMoves = GenerateLeftSliderMoves(thisRankOccupancy, to_left);
-
+                const bitboard rightSliderMoves = GenerateRightSliderMoves(thisRankOccupancy, bitsOnToRight);
+                const bitboard leftSliderMoves = GenerateLeftSliderMoves(thisRankOccupancy, bitsOnToLeft);
                 rook_horiz_moves[i][occ] = rightSliderMoves | leftSliderMoves;
 
                 bitboard thisFileVerticalOccupancy = RotateOccupancyVertical(occ, file);
-                bitboard upMoves = GenerateUpSliderMoves(thisFileVerticalOccupancy, to_up); //same principle as above
-                bitboard downMoves = GenerateDownSliderMoves(thisFileVerticalOccupancy, to_down);
+                bitboard upSliderMoves = GenerateUpSliderMoves(thisFileVerticalOccupancy, bitsOnToUp); //same principle as above
+                bitboard downSliderMoves = GenerateDownSliderMoves(thisFileVerticalOccupancy, bitsOnToDown);
+                rook_vert_moves[i][occ] = upSliderMoves | downSliderMoves;
 
-                rook_vert_moves[i][occ] = upMoves | downMoves;
+				if (i == squares::e5 && occ== (util::one<<5))
+				{
+					//PrintBitboard(occ);
+				}
+                bitboard diagonalOcc_a1h8 = RotateOccupanyDiagonal_a1h8(occ, diagonalStart, diagonalLength);
 
-                //for a1h8, we go up + right. for a8h1 we go up + left (not down + right)
-                int diag_begin[2][2]; //{a1h8, a8h1}{rank, file}
-                int diag_length[2]; //{a1h8, a8h1}
-                if (rank > file) {
-                    diag_begin[0][0] = rank - file; //starting rank of the diag in a1h8 dir
-                    diag_begin[0][1] = 0;           //starting file is zero as rank > file
-                    diag_begin[1][0] = 0;           //starting rank in other dir
-                    diag_begin[1][1] = rank + file; 
-                    diag_length[0] = util::BOARD_SIZE - diag_begin[0][0]; //8 - starting rank
-                    diag_length[1] = diag_begin[1][1] + 1;
-                } else {
-                    diag_begin[0][0] = 0;
-                    diag_begin[0][1] = file - rank;
-                    diag_begin[1][0] = file + rank;
-                    diag_begin[1][1] = 0;
-                    diag_length[0] = util::BOARD_SIZE - diag_begin[0][1];
-                    diag_length[1] = diag_begin[1][1] + 1;
-                }
+				
+			
+                bitboard a1h8_moves = GenerateDiagonal_a1h8_Moves(diagonalOcc_a1h8, bitsOnToUpAndRight, bitsOnToDownAndLeft);
 
-                bitboard diag_a1h8_occ = 0;
-                for (int j = diag_begin[0][0]; j < diag_length[0]; ++j) { //go up + right, rank loop
-                    bitboard thisbit = (occ & (util::one << j)) >> j;
-                    int cur_file = diag_begin[0][1] + (j - diag_begin[0][0]); //file = starting file on diag + steps
-                    diag_a1h8_occ |= (thisbit << (j*util::BOARD_SIZE + cur_file));
-                }        
-                bitboard a1h8_moves = diag_a1h8_occ & diag_masks_a1h8[i];
+                bitboard diagonalOcc_a8h1 = RotateOccupanyDiagonal_a8h1(occ, diagonalStart, diagonalLength);
 
-                bitboard diag_a8h1_occ = 0;
-                for (int j = diag_begin[1][0]; j < diag_length[1]; ++j) { //start at same sq, go up + left
-                    bitboard thisbit = (occ & (util::one << j)) >> j;
-                    int cur_file = diag_begin[1][1] - (j - diag_begin[1][0]);
-                    diag_a8h1_occ |= (thisbit << (j*util::BOARD_SIZE + cur_file));
-                }        
-                bitboard a8h1_moves = diag_a8h1_occ & diag_masks_a8h1[i];
+                bitboard a8h1_moves = GenerateDiagonal_a8h1_Moves(diagonalOcc_a8h1, bitsOnToUpAndLeft, bitsOnToDownAndRight);
+				
+				
+				if (i == squares::e5 && occ== (util::one<<5))
+				{
+					//PrintBitboard(diagonalOcc_a8h1, "diagonalOcc_a8h1", squares::e5);
+					//PrintBitboard(a8h1_moves, "a8h1_moves", squares::e5);
+				}
 
-				bitboard wtf = diag_masks_a1h8[i];
+				diag_moves_a1h8[i][occ] = a1h8_moves;
+				diag_moves_a8h1[i][occ] = a8h1_moves;
 
-				auto moo = 
-                    ( (a1h8_moves << 9) |  (a1h8_moves << 18) | (a1h8_moves << 27) 
-                    | (a1h8_moves << 36) | (a1h8_moves << 45) | (a1h8_moves << 54) );
-
-                a1h8_moves = ((
-                    ( (a1h8_moves << 9) |  (a1h8_moves << 18) | (a1h8_moves << 27) 
-                    | (a1h8_moves << 36) | (a1h8_moves << 45) | (a1h8_moves << 54) )
-                    & diag_masks_a1h8[i])
-                    ^ diag_masks_a1h8[i]);
-
-                /*if (i == 0 && occ == 0) {
-                    print_bitboard(diag_masks_a1h8[i]);
-                    print_bitboard(diag_a1h8_occ);
-                    print_bitboard(a1h8_moves);
-                }*/
-                diag_moves[i][occ] = a1h8_moves; //todo
+				/*if (i == squares::e5 && occ == 2)
+				{
+					PrintBitboard(occ, "occ");
+					PrintBitboard(currentSquareBit, "current square", i);
+					PrintBitboard(diagMasks_a1h8[i], "diagMasks_a1h8", i);
+					PrintBitboard(diagonalOcc_a1h8, "diagonalOcc_a1h8", i);
+					PrintBitboard(diagonalOcc_a8h1, "diagonalOcc_a8h1", i);
+					PrintBitboard(bitsOnToDownAndRight, "bitsOnToDownAndRight", i);
+					PrintBitboard(a1h8_moves, "a1h8_moves", i);
+					PrintBitboard(a8h1_moves, "a8h1_moves", i);
+				}*/
             }
         }
     }

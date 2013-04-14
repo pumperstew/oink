@@ -1,5 +1,6 @@
 #include "MoveGenerator.hpp"
 #include "BasicOperations.hpp"
+#include "Display.hpp"
 
 namespace chess
 {
@@ -126,12 +127,39 @@ namespace chess
 			int square = GetFirstIndexAndClear(bishops);
 			move.SetSource(square);
 
-			int rank, file;
-			IndexToRankAndFile(square, rank, file);
-			//OINK_TODO
-			//bitboard diagonalOccupancy = GetDiagonalOccupancy(position.wholeBoard, square);
-			//bitboard destinations = moves::diag_moves[square][diagonalOccupancy] & ~position.sides[side];
-			//GenerateMoves(destinations, move, moves, position, side);
+			PrintBitboard(position.wholeBoard);
+			PrintBitboard(moves::diagMasks_a1h8[square], "diagmasks");
+
+			bitboard diagonalOccupancy_a1h8 = GetDiagonalOccupancy_a1h8(position.wholeBoard, square);
+			bitboard diagonalOccupancy_a8h1 = GetDiagonalOccupancy_a8h1(position.wholeBoard, square);
+			bitboard destinations = (moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8] | moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1]) 
+									& ~position.sides[side];
+
+			PrintBitboard(diagonalOccupancy_a1h8, "diagonalOccupancy_a1h8", square);
+			PrintBitboard(diagonalOccupancy_a8h1, "diagonalOccupancy_a8h1", square);
+			assert(diagonalOccupancy_a8h1 < 256);
+			assert(diagonalOccupancy_a1h8 < 256);
+			PrintBitboard(moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1], "ffs", square);
+			
+			if (square == squares::c4)
+			{
+				bitboard o,m;
+				for ( bitboard lol = 0; lol < util::fullrank; ++lol)
+				{
+					o = moves::diag_moves_a1h8[square][lol];
+					if (lol && o != m)
+					{
+						PrintBitboard(moves::diag_moves_a1h8[square][lol], "umm", square);
+						PrintBitboard(lol, "umm2", square);
+					}
+					//PrintBitboard(moves::diag_moves_a8h1[square][lol], "moo", square);
+					m=o;
+				}
+				PrintBitboard(moves::diag_moves_a1h8[square][1 << 6]);
+			}
+			PrintBitboard(destinations, "destinations", square);
+
+			GenerateMoves(destinations, move, moves, position, side);
         }
 		return moves;
     }

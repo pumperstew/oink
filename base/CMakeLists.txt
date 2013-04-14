@@ -11,6 +11,8 @@ set(BASE_SRC
 	Move.cpp
 	MoveGenerator.hpp
 	MoveGenerator.cpp
+	Display.hpp
+	Display.cpp
 )
 	
 add_library(base ${BASE_SRC})

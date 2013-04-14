@@ -32,7 +32,7 @@ namespace chess
         const bitboard fullrank = 0x00000000000000ff;
         const int NUM_SQUARES = 64;
         const int BOARD_SIZE  = 8;
-		bitboard singleBit[BOARD_SIZE];
+		extern bitboard singleBit[BOARD_SIZE];
     }
 
 	namespace ranks
@@ -578,14 +578,16 @@ namespace chess
             }
         };
 
-        extern bitboard knight_moves[util::NUM_SQUARES];
+        
+		extern bitboard file_masks[util::BOARD_SIZE];
+        extern bitboard rank_masks[util::BOARD_SIZE];
+		extern bitboard diagMasks_a1h8[util::NUM_SQUARES];
+        extern bitboard diagMasks_a8h1[util::NUM_SQUARES];
+		extern bitboard knight_moves[util::NUM_SQUARES];
         extern bitboard rook_horiz_moves[util::NUM_SQUARES][256];
         extern bitboard rook_vert_moves[util::NUM_SQUARES][256];
-        extern bitboard file_masks[util::BOARD_SIZE];
-        extern bitboard rank_masks[util::BOARD_SIZE];
-        extern bitboard diag_masks_a1h8[util::NUM_SQUARES];
-        extern bitboard diag_masks_a8h1[util::NUM_SQUARES];
-        extern bitboard diag_moves[util::NUM_SQUARES][256];
+        extern bitboard diag_moves_a1h8[util::NUM_SQUARES][256];
+		extern bitboard diag_moves_a8h1[util::NUM_SQUARES][256];
 
         /*const bitboard right_of[util::NUM_SQUARES] =
         {

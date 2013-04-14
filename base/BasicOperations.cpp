@@ -1,5 +1,6 @@
 #include "BasicOperations.hpp"
 #include "ChessConstants.hpp"
+#include "Display.hpp"
 
 namespace chess 
 {
@@ -95,18 +96,93 @@ namespace chess
     bitboard GetFileOccupancy(bitboard b, int file)
     {
         bitboard occ = 0;
-		auto foo = moves::file_masks[file];
-        bitboard bm = b & moves::file_masks[file]; //mask off everything but this file
-        for (int i = 0; i < util::BOARD_SIZE; ++i) {
-            occ |= (util::fullrank & ((bm >> (file + (i<<3))) << i)); //select bits up the file, shift them down to the low 8 bits
+        bitboard thisFileOccupancy = b & moves::file_masks[file]; //mask off everything but this file
+        for (int rank = 0; rank < util::BOARD_SIZE; ++rank)
+		{
+			occ |= ( ( (thisFileOccupancy >> RankFileToIndex(rank, file) ) & util::fullrank) //deal with one bit at a time
+				   << rank); //shift up to appropriate bit on [0, 7]
         }
         return occ;
     }
 
-    bitboard get_diag_occupancy(bitboard b, int sq)
+	//OINK_TODO
+    bitboard GetDiagonalOccupancy_a1h8(bitboard b, int square)
     {
-        return 0;
+        bitboard occ = 0;
+        bitboard a1h8_DiagonalOccupancy = b & moves::diagMasks_a1h8[square];
+
+        for (int rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
+		{
+			occ |= ( 
+				   ( (a1h8_DiagonalOccupancy >> RankFileToIndex(rankOffset, 0) ) //shift occupancy down by current rank offset.
+				   & util::fullrank) //only first rank should contribute.
+				   );
+        }
+        return occ;
     }
+
+	//OINK_TODO
+    bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square)
+    {
+        bitboard occ = 0;
+        bitboard a8h1_DiagonalOccupancy = b & moves::diagMasks_a8h1[square];
+
+        for (int rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
+		{
+			bitboard shiftedDown = ( (a8h1_DiagonalOccupancy >> RankFileToIndex(rankOffset, 0) ) );
+			occ |= (shiftedDown & util::fullrank);
+			//int index;
+			//GetAndClearFirstSetBitReturningIndex(shiftedDown, index);
+			//int fileOnFirstRank, unused;
+			//IndexToRankAndFile(index, unused, fileOnFirstRank);
+			//int shift = rankOffset - fileOnFirstRank;
+			//occ |= ( 
+			//	   ( (a8h1_DiagonalOccupancy >> RankFileToIndex(rankOffset, 0) ) //shift occupancy down by current rank offset.
+			//	   & util::fullrank) //only first rank should contribute.
+			//	   << shift);
+        }
+        return occ;
+    }
+
+
+	//bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square)
+	//{
+	//	bitboard occ = 0;
+	//	bitboard a8h1_DiagonalOccupancy = b & moves::diagMasks_a8h1[square];
+
+	//	int rank, file;
+	//	IndexToRankAndFile(square, rank, file);
+
+	//	PrintBitboard(a8h1_DiagonalOccupancy, "a8h1_DiagonalOccupancy", square);
+ //       for (int rf = 0; rf < util::BOARD_SIZE; ++rf) //rank and file offset
+	//	{
+	//		int offset = RankFileToIndex(rf, 0);
+	//		//square + offset = up + left
+	//		//square - offset = down + right
+	//		PrintBitboard(( (a8h1_DiagonalOccupancy >> (offset) ) & util::fullrank), "ARGH");
+	//		PrintBitboard(( (a8h1_DiagonalOccupancy >> (offset) ) & util::fullrank) << rf, "ARGH2");
+	//		//PrintBitboard(( (a8h1_DiagonalOccupancy >> (square - offset) ) & util::fullrank));
+
+	//		
+
+	//		bitboard shiftedToFirstRank = ( ( (a8h1_DiagonalOccupancy >> (offset) ) & util::fullrank) );
+	//		int index;
+	//		int a, frank0;
+	//		
+	//		
+	//		GetAndClearFirstSetBitReturningIndex(shiftedToFirstRank, index);
+	//		IndexToRankAndFile(index, a, frank0);
+	//		int shift = rf - frank0;
+	//		occ |= ( ( (a8h1_DiagonalOccupancy >> (offset) ) & util::fullrank)  //deal with one bit at a time
+	//			   << shift); //shift up to appropriate bit on [0, 7]
+
+	//		//occ |= ( ( (a8h1_DiagonalOccupancy >> (square - offset) ) & util::fullrank) //deal with one bit at a time
+	//		//	   << rf); //shift up to appropriate bit on [0, 7]
+
+	//		//PrintBitboard(occ, "occ", square);
+ //       }
+ //       return occ;
+	//}
 	
 	void IndexToRankAndFile(int index, int &rank, int &file)
 	{

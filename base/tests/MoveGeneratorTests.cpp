@@ -65,6 +65,13 @@ void SetWhiteRookAt(Position &position, int square)
 	position.squares[square] = pieces::WHITE_ROOK;
 }
 
+void SetWhiteBishopAt(Position &position, int square)
+{
+	position.bishops[sides::white] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::WHITE_BISHOP;
+}
+
 void SetBlackPawnAt(Position &position, int square)
 {
 	position.pawns[sides::black] |= squarebits::indexed[square];
@@ -399,6 +406,206 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	CheckMoveIsInList(moves, squares::a8, squares::a6, pieces::WHITE_ROOK, pieces::NONE);
 	CheckMoveIsInList(moves, squares::a8, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
 	CheckMoveIsInList(moves, squares::a8, squares::a4, pieces::WHITE_ROOK, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::a1);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::e5, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_b2_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::b2);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(9, moves.size());
+	
+	CheckMoveIsInList(moves, squares::b2, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::e5, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::b2, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::b2, squares::c1, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::b2, squares::a3, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_OnOtherwiseClearBoard)
+{
+	SetWhiteBishopAt(position, squares::e5);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(13, moves.size());
+	
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_WithBlackPieceOn_c3)
+{
+	SetWhiteBishopAt(position, squares::a1);
+	SetBlackPawnAt(position, squares::c3);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(2, moves.size());
+	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::c3, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_c4_WithBlackPieceOn_b3)
+{
+	SetWhiteBishopAt(position, squares::c4);
+	SetBlackPawnAt(position, squares::b3);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(10, moves.size());
+	
+	CheckMoveIsInList(moves, squares::c4, squares::d5, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::e6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::f7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::g8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::c4, squares::b3, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+
+	CheckMoveIsInList(moves, squares::c4, squares::b5, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::a6, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::c4, squares::d3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::e2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::c4, squares::f1, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_b2)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::b2);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(12, moves.size());
+	
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_c7)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::c7);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(12, moves.size());
+	
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f4)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f4);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(11, moves.size());
+	
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
+}
+
+//No clash, so same as clear board.
+TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f3)
+{
+	SetWhiteBishopAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f3);
+
+	auto moves = generator.GenerateBishopMoves(position, sides::white);
+
+	ASSERT_EQ(13, moves.size());
+	
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
+
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
 }
 
 }

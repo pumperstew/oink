@@ -12,6 +12,8 @@ namespace chess
 	
 	bitboard GetRankOccupancy(bitboard b, int rank);
 	bitboard GetFileOccupancy(bitboard b, int rank);
+	bitboard GetDiagonalOccupancy_a1h8(bitboard b, int square);
+	bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square);
 
 	void IndexToRankAndFile(int index, int &rank, int &file);
 	int  RankFileToIndex(int rank, int file);
