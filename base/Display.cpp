@@ -5,6 +5,11 @@
 #include <cstdio>
 #include <Windows.h>
 
+#include <boost/assign.hpp>
+
+using namespace std;
+namespace ba = boost::assign;
+
 namespace chess
 {
 	//void print_board(const board &b)
@@ -40,36 +45,60 @@ namespace chess
 		};
 	}
 //#define DISPLAY_DISABLED
-	void PrintBitboard(const bitboard bitboard, const char* title, int highlightSquare)
+	void PrintBitboards(const vector<pair<bitboard, string>> &bitboards, int highlightSquare)
 	{
 #ifndef DISPLAY_DISABLED
 		auto stdOutHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 
+		vector<string> offsets;
 		printf("\n");
-		if (title) printf("%s\n", title);
+		for (size_t i = 0; i < bitboards.size(); ++i)
+		{
+			int padLength = 0, titlePadLength = 0;
+			if (bitboards[i].second.size() < 16) 
+				titlePadLength = 16 - bitboards[i].second.size() + 1;
+			else 
+				padLength = bitboards[i].second.size() - 16 + 1;
+
+			string titlePad(max(titlePadLength, 1), ' ');
+			string pad(max(padLength, 1), ' ');
+			offsets.push_back(pad);
+			printf("%s%s", bitboards[i].second.c_str(), titlePad.c_str());
+		}
+		printf("\n");
 
 		for (int rank = 7; rank >= 0; --rank)
 		{
-			for (int file = 0; file < util::BOARD_SIZE; ++file)
+			for (size_t j = 0; j < bitboards.size(); ++j)
 			{
-				int index = RankFileToIndex(rank, file);
-				auto value = (bitboard >> index) & util::one;
-				if (index == highlightSquare)
+				for (int file = 0; file < util::BOARD_SIZE; ++file)
 				{
-					::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::RED);
-				} 
-				else if (value)
-				{
-					::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::BLUE);
+					int index = RankFileToIndex(rank, file);
+					auto value = (bitboards[j].first >> index) & util::one;
+					if (index == highlightSquare)
+					{
+						::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::RED);
+					} 
+					else if (value)
+					{
+						::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::BLUE);
+					}
+					printf("%d ", (int)value);
+					::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::LGREY);
 				}
-				printf("%d ", (bitboard >> index) & util::one);
-				::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::LGREY);
+				printf("%s", offsets[j].c_str());
 			}
 			printf("\n");
 		}
 #endif
 	}
 	
+	void PrintBitboard(bitboard board, const char* title, int highlightSquare)
+	{
+		vector<pair<bitboard, string>> bitboards = ba::list_of(make_pair(board, title));
+		PrintBitboards(bitboards, highlightSquare);
+	}
+
 	/*char file2letter[8] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 
 	std::ostream& print_square::operator()(std::ostream &stream) const

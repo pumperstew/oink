@@ -2,6 +2,11 @@
 #include "BasicOperations.hpp"
 #include "Display.hpp"
 
+#include <boost/assign.hpp>
+
+using namespace std;
+namespace ba = boost::assign;
+
 namespace chess
 {
 	//OINK_TODO: probably better to specialise for pawns to prevent branch for all other pieces.
@@ -115,6 +120,8 @@ namespace chess
 		return moves;
     }
 
+#define OINK_MOVEGEN_DIAGNOSTICS
+
     MoveVector MoveGenerator::GenerateBishopMoves(const Position &position, int side)
     {
         MoveVector moves;
@@ -127,38 +134,26 @@ namespace chess
 			int square = GetFirstIndexAndClear(bishops);
 			move.SetSource(square);
 
-			PrintBitboard(position.wholeBoard);
-			PrintBitboard(moves::diagMasks_a1h8[square], "diagmasks");
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+			PrintBitboards(ba::list_of(make_pair(position.wholeBoard, "whole board"))
+									  (make_pair(moves::diagMasks_a1h8[square], "diagmasks for square")), square);
+#endif
 
 			bitboard diagonalOccupancy_a1h8 = GetDiagonalOccupancy_a1h8(position.wholeBoard, square);
 			bitboard diagonalOccupancy_a8h1 = GetDiagonalOccupancy_a8h1(position.wholeBoard, square);
 			bitboard destinations = (moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8] | moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1]) 
 									& ~position.sides[side];
 
-			PrintBitboard(diagonalOccupancy_a1h8, "diagonalOccupancy_a1h8", square);
-			PrintBitboard(diagonalOccupancy_a8h1, "diagonalOccupancy_a8h1", square);
 			assert(diagonalOccupancy_a8h1 < 256);
 			assert(diagonalOccupancy_a1h8 < 256);
-			PrintBitboard(moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1], "ffs", square);
-			
-			if (square == squares::c4)
-			{
-				bitboard o,m;
-				for ( bitboard lol = 0; lol < util::fullrank; ++lol)
-				{
-					o = moves::diag_moves_a1h8[square][lol];
-					if (lol && o != m)
-					{
-						PrintBitboard(moves::diag_moves_a1h8[square][lol], "umm", square);
-						PrintBitboard(lol, "umm2", square);
-					}
-					//PrintBitboard(moves::diag_moves_a8h1[square][lol], "moo", square);
-					m=o;
-				}
-				PrintBitboard(moves::diag_moves_a1h8[square][1 << 6]);
-			}
-			PrintBitboard(destinations, "destinations", square);
 
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+			PrintBitboards(ba::list_of(make_pair(diagonalOccupancy_a1h8, "diagonalOccupancy_a1h8"))
+							          (make_pair(diagonalOccupancy_a8h1, "diagonalOccupancy_a8h1"))
+									  (make_pair(moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8], "a1h8 moves"))
+									  (make_pair(moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1], "a8h1 moves"))
+									  (make_pair(destinations, "destinations")), square);
+#endif
 			GenerateMoves(destinations, move, moves, position, side);
         }
 		return moves;

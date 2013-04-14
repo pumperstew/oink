@@ -2,8 +2,10 @@
 #include "../MoveGenerator.hpp"
 
 #include <boost/range/algorithm.hpp>
+#include <boost/assign.hpp>
 
 using namespace chess;
+namespace ba = boost::assign;
 
 namespace
 {
@@ -98,6 +100,11 @@ void CheckMoveIsInList(const MoveVector &moves, int source, int destination, Pie
 	ASSERT_NE(moves.end(), moveIt);
 }
 
+void CheckMovesDestinationVarying(const MoveVector &moves, int source, Piece piece, Piece captured, const std::vector<int> &destinations, Piece promotion = pieces::NONE)
+{
+	boost::for_each(destinations, [&](int destination) { CheckMoveIsInList(moves, source, destination, piece, captured, promotion); } );
+}
+
 //minimal targets: 2
 TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesForKnightOn_a8_OnOtherwiseClearBoard)
 {
@@ -106,8 +113,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateKnightMoves(position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::c7, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::b6, pieces::WHITE_KNIGHT, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KNIGHT, pieces::NONE, ba::list_of(squares::c7)(squares::b6));
 }
 
 //maximal targets: 8
@@ -118,14 +124,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateKnightMoves(position, sides::white);
 
 	ASSERT_EQ(8, moves.size());
-	CheckMoveIsInList(moves, squares::e5, squares::f7, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f3, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d7, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d3, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g4, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g6, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c4, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c6, pieces::WHITE_KNIGHT, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KNIGHT, pieces::NONE,
+		ba::list_of(squares::f7)(squares::f3)(squares::d7)(squares::d3)(squares::g4)(squares::g6)(squares::c4)(squares::c6));
 }
 
 //middling
@@ -136,12 +136,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateKnightMoves(position, sides::white);
 
 	ASSERT_EQ(6, moves.size());
-	CheckMoveIsInList(moves, squares::g3, squares::h5, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::g3, squares::h1, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::g3, squares::f5, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::g3, squares::f1, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::g3, squares::e4, pieces::WHITE_KNIGHT, pieces::NONE);
-	CheckMoveIsInList(moves, squares::g3, squares::e2, pieces::WHITE_KNIGHT, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::g3, pieces::WHITE_KNIGHT, pieces::NONE,
+		ba::list_of(squares::h5)(squares::h1)(squares::f5)(squares::f1)(squares::e4)(squares::e2));
 }
 
 //middling
@@ -164,9 +160,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	auto moves = generator.GenerateKingMoves(position, sides::white);
 
 	ASSERT_EQ(3, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::b8, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::b7, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a7, pieces::WHITE_KING, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KING, pieces::NONE,
+		ba::list_of(squares::b8)(squares::b7)(squares::a7));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForKingOn_e5_OnOtherwiseClearBoard)
@@ -176,14 +171,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	auto moves = generator.GenerateKingMoves(position, sides::white);
 
 	ASSERT_EQ(8, moves.size());
-	CheckMoveIsInList(moves, squares::e5, squares::e6, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e4, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f5, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d5, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_KING, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_KING, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KING, pieces::NONE,
+		ba::list_of(squares::e6)(squares::e4)(squares::f5)(squares::d5)(squares::f6)(squares::d6)(squares::d4)(squares::f4));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_OnOtherwiseClearBoard)
@@ -193,8 +182,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	auto moves = generator.GeneratePawnMoves(position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
-	CheckMoveIsInList(moves, squares::e2, squares::e3, pieces::WHITE_PAWN, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e2, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, ba::list_of(squares::e3)(squares::e4));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e3_OnOtherwiseClearBoard)
@@ -215,8 +203,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	auto moves = generator.GeneratePawnMoves(position, sides::white);
 
 	ASSERT_EQ(3, moves.size());
-	CheckMoveIsInList(moves, squares::e2, squares::e3, pieces::WHITE_PAWN, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e2, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, ba::list_of(squares::e3)(squares::e4));
 	CheckMoveIsInList(moves, squares::e2, squares::f3, pieces::WHITE_PAWN, pieces::BLACK_PAWN);
 }
 
@@ -229,10 +216,8 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	auto moves = generator.GeneratePawnMoves(position, sides::white);
 
 	ASSERT_EQ(4, moves.size());
-	CheckMoveIsInList(moves, squares::e2, squares::e3, pieces::WHITE_PAWN, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e2, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e2, squares::f3, pieces::WHITE_PAWN, pieces::BLACK_PAWN);
-	CheckMoveIsInList(moves, squares::e2, squares::d3, pieces::WHITE_PAWN, pieces::BLACK_PAWN);
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE,		 ba::list_of(squares::e3)(squares::e4));
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::BLACK_PAWN, ba::list_of(squares::f3)(squares::d3));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_c7_OnOtherwiseClearBoard)
@@ -273,21 +258,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::b8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::c8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::d8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::e8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::f8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::g8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::h8, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::a8, squares::a7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a4, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a3, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a2, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a1, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)(squares::h8)
+				   (squares::a7)(squares::a6)(squares::a5)(squares::a4)(squares::a3)(squares::a2)(squares::a1));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForRookOn_e5_OnOtherwiseClearBoard)
@@ -297,21 +270,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
-	CheckMoveIsInList(moves, squares::e5, squares::e6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e4, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e3, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e2, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::e1, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h5, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+				   (squares::d5)(squares::c5)(squares::b5)(squares::a5)(squares::f5)(squares::g5)(squares::h5));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForRookOn_h1_OnOtherwiseClearBoard)
@@ -321,21 +282,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
-	CheckMoveIsInList(moves, squares::h1, squares::h2, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h3, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h4, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::h8, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::h1, squares::g1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::f1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::e1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::d1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::c1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::b1, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::h1, squares::a1, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::h2)(squares::h3)(squares::h4)(squares::h5)(squares::h6)(squares::h7)(squares::h8)
+				   (squares::g1)(squares::f1)(squares::e1)(squares::d1)(squares::c1)(squares::b1)(squares::a1));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForRookOn_a8_WithBlackPieceOn_a3)
@@ -346,18 +295,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::b8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::c8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::d8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::e8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::f8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::g8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::h8, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::a8, squares::a7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a4, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)(squares::h8)
+				   (squares::a7)(squares::a6)(squares::a5)(squares::a4));
 	CheckMoveIsInList(moves, squares::a8, squares::a3, pieces::WHITE_ROOK, pieces::BLACK_PAWN);
 }
 
@@ -369,20 +309,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::b8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::c8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::d8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::e8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::f8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::g8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::h8, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::a8, squares::a7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a4, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a3, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a2, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)(squares::h8)
+				   (squares::a7)(squares::a6)(squares::a5)(squares::a4)(squares::a3)(squares::a2));
 	CheckMoveIsInList(moves, squares::a8, squares::a1, pieces::WHITE_ROOK, pieces::BLACK_BISHOP);
 }
 
@@ -394,18 +323,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	auto moves = generator.GenerateRookMoves(position, sides::white);
 
 	ASSERT_EQ(11, moves.size());
-	CheckMoveIsInList(moves, squares::a8, squares::b8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::c8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::d8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::e8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::f8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::g8, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::h8, pieces::WHITE_ROOK, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::a8, squares::a7, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a6, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a5, pieces::WHITE_ROOK, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a8, squares::a4, pieces::WHITE_ROOK, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
+		ba::list_of(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)(squares::h8)
+				   (squares::a7)(squares::a6)(squares::a5)(squares::a4));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_OnOtherwiseClearBoard)
@@ -415,13 +335,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
-	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::e5, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::a1, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::b2)(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_b2_OnOtherwiseClearBoard)
@@ -431,18 +346,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(9, moves.size());
-	
-	CheckMoveIsInList(moves, squares::b2, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::e5, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::b2, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::b2, squares::c1, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::b2, squares::a3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8)(squares::a1)(squares::c1)(squares::a3));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_OnOtherwiseClearBoard)
@@ -452,21 +357,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
-	
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_a1_WithBlackPieceOn_c3)
@@ -489,20 +382,10 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(10, moves.size());
-	
-	CheckMoveIsInList(moves, squares::c4, squares::d5, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::e6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::f7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::g8, pieces::WHITE_BISHOP, pieces::NONE);
-
+	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::d5)(squares::e6)(squares::f7)(squares::g8)(squares::b5)(squares::a6)(squares::d3)
+				   (squares::e2)(squares::f1));
 	CheckMoveIsInList(moves, squares::c4, squares::b3, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-
-	CheckMoveIsInList(moves, squares::c4, squares::b5, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::a6, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::c4, squares::d3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::e2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::c4, squares::f1, pieces::WHITE_BISHOP, pieces::NONE);
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_b2)
@@ -513,20 +396,10 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
-	
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)
+				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
 	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_c7)
@@ -537,22 +410,10 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
-	
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::f4)(squares::g3)(squares::h2));
 	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
-
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesForBishopOn_e5_WithBlackPieceOn_f4)
@@ -563,20 +424,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(11, moves.size());
-	
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
-
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::c7)(squares::b8));
 	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
 }
 
@@ -589,23 +439,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	auto moves = generator.GenerateBishopMoves(position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
-	
-	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h8, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::a1, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::d6, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::b8, pieces::WHITE_BISHOP, pieces::NONE);
-
-	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::g3, pieces::WHITE_BISHOP, pieces::NONE);
-	CheckMoveIsInList(moves, squares::e5, squares::h2, pieces::WHITE_BISHOP, pieces::NONE);
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
 }
 
 }
