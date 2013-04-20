@@ -10,7 +10,6 @@
 namespace chess
 {
 	void PrintPosition(const Position &position);
-	//void print_boards(const position_list &brds);
 	void PrintBitboard(const bitboard bitboard, const char* title = nullptr, int highlightSquare = -1);
 	void PrintBitboards(const std::vector<std::pair<bitboard, std::string>> &bitboards, int highlightSquare = -1);
 

@@ -19,7 +19,7 @@ namespace chess
 	int  RankFileToIndex(int rank, int file);
 	int  IndexToRank(int index);
 	
-	bitboard ExcludeNextRank(bitboard pos, int rank, int side);
+	bitboard ExcludeFourthOrFifthRank(bitboard pos, int side);
 	/*
 	bitboard get_first_set_bit(bitboard b);
 	bitboard get_and_clear_first_set_bit(bitboard &b);

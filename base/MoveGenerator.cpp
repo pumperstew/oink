@@ -7,6 +7,8 @@
 using namespace std;
 namespace ba = boost::assign;
 
+#define OINK_MOVEGEN_DIAGNOSTICS
+
 namespace chess
 {
 	//OINK_TODO: probably better to specialise for pawns to prevent branch for all other pieces.
@@ -82,9 +84,21 @@ namespace chess
             int square = GetFirstIndexAndClear(pawns);
 			move.SetSource(square);
 
-			bool promoting = (IndexToRank(square) == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
+			int rank = IndexToRank(square);
+			bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
 
-			bitboard destinations = moves::pawn_moves[side][square] & ~position.sides[side];
+			bitboard wholeBoard = position.wholeBoard;
+			if (rank == sides::ABOUT_TO_PROMOTE[side ^ 1])
+				wholeBoard = ExcludeFourthOrFifthRank(wholeBoard, side);
+
+			 //since for pawns we're doing captures separately, we use wholeBoard here. we also exclude 4th(4th) rank if 3rd(6th) is occupied.
+			bitboard destinations = moves::pawn_moves[side][square] & ~wholeBoard;
+			
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+			/*PrintBitboard(destinations, "destinations", square);
+			PrintBitboard(position.wholeBoard, "wholeBoard before", square);
+			PrintBitboard(wholeBoard, "wholeBoard", square);*/
+#endif
 			GenerateMoves(destinations, move, moves, position, side, promoting);
 
 			destinations = moves::pawn_captures[side][square] & position.GetOtherSide(side);
@@ -119,8 +133,6 @@ namespace chess
         }
 		return moves;
     }
-
-#define OINK_MOVEGEN_DIAGNOSTICS
 
     MoveVector MoveGenerator::GenerateBishopMoves(const Position &position, int side)
     {

@@ -72,15 +72,15 @@ namespace chess
     return 0;
     }*/
 
-    //take position, get occupancy on given rank, and return position with the *next rank*
+    //take position, get occupancy on 3rd/6th rank, and return position with the 4th/5th rank
     //also filled with the given rank's pieces (as well as its own). this can be used
     //to eliminate jumps over pieces by pawns going 2nd -> 4th rank.
-    bitboard ExcludeNextRank(bitboard pos, int rank, int side) 
+    bitboard ExcludeFourthOrFifthRank(bitboard pos, int side) 
     {
         if (side == sides::white)
-            return pos | ((pos & moves::rank_masks[rank]) << 8); //OINK_TODO: ugly if test
+            return pos | ((pos & moves::rank_masks[2]) << 8); //OINK_TODO: ugly if test
         else
-            return pos | ((pos & moves::rank_masks[rank]) >> 8); 
+            return pos | ((pos & moves::rank_masks[5]) >> 8); 
     }
 
     //Get occupancy of given rank [ranks::first, ranks::eighth].

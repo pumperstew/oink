@@ -219,6 +219,50 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	CheckMoveIsInList(moves, squares::e3, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
 }
 
+//Test that jumps are disallowed
+TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithABlackPieceOn_e3)
+{
+	SetWhitePawnAt(position, squares::e2);
+	SetBlackPawnAt(position, squares::e3);
+
+	auto moves = generator.GeneratePawnMoves(position, sides::white);
+
+	ASSERT_EQ(0, moves.size());
+}
+
+//Test that jumps are disallowed
+TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithAWhitePieceOn_e3)
+{
+	SetWhitePawnAt(position, squares::e2);
+	SetWhiteBishopAt(position, squares::e3);
+
+	auto moves = generator.GeneratePawnMoves(position, sides::white);
+
+	ASSERT_EQ(0, moves.size());
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithABlackPieceOn_e4)
+{
+	SetWhitePawnAt(position, squares::e2);
+	SetBlackPawnAt(position, squares::e4);
+
+	auto moves = generator.GeneratePawnMoves(position, sides::white);
+
+	ASSERT_EQ(1, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, ba::list_of(squares::e3));
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithAWhitePieceOn_e4)
+{
+	SetWhitePawnAt(position, squares::e2);
+	SetWhiteBishopAt(position, squares::e4);
+
+	auto moves = generator.GeneratePawnMoves(position, sides::white);
+
+	ASSERT_EQ(1, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, ba::list_of(squares::e3));
+}
+
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithBlackPieceOn_f3)
 {
 	SetWhitePawnAt(position, squares::e2);
