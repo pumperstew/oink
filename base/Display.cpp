@@ -12,16 +12,18 @@ namespace ba = boost::assign;
 
 namespace chess
 {
-	//void print_board(const board &b)
-	//{
-	//	printf("\n");
-	//	for (int r = 7; r >= 0; --r) {
-	//		for (int c = 0; c < 8; ++c) {
-	//			printf("%c ", b.get_at(r,c));
-	//		}
-	//		printf("\n");
-	//	}
-	//}
+	void PrintPosition(const Position &position)
+	{
+		printf("\n");
+		for (int rank = 7; rank >= 0; --rank)
+		{
+			for (int file = 0; file < 8; ++file)
+			{
+				printf("%c ", pieces::PieceSymbols[position.GetSquare(RankFileToIndex(rank, file))]);
+			}
+			printf("\n");
+		}
+	}
 
 	//void print_boards(const position_list &brds)
 	//{

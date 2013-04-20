@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "../Position.hpp"
+#include "../Display.hpp"
 
 using namespace chess;
 
@@ -37,6 +38,8 @@ TEST_F(PositionTests, TestThat_SetupStarting_CreatesExpectedPosition)
 			  starting::black_pawns, position.sides[sides::black]);
 
 	ASSERT_EQ(position.sides[sides::black] | position.sides[sides::white], position.wholeBoard);
+
+	PrintPosition(position);
 }
 	
 TEST_F(PositionTests, TestThat_Clear_DoesClear)

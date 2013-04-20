@@ -14,6 +14,11 @@ namespace chess
 		bitboard singleBit[BOARD_SIZE];
 	}
 
+	namespace pieces
+	{
+		char PieceSymbols[15];
+	}
+
     namespace moves
     {
         bitboard rook_horiz_moves[util::NUM_SQUARES][256];
@@ -274,6 +279,20 @@ namespace chess
 
     void InitializeConstants()
     {
+		pieces::PieceSymbols[pieces::NONE] = '*';
+		pieces::PieceSymbols[pieces::WHITE_PAWN] = 'P';
+		pieces::PieceSymbols[pieces::WHITE_KING] = 'K';
+		pieces::PieceSymbols[pieces::WHITE_KNIGHT] = 'N';
+		pieces::PieceSymbols[pieces::WHITE_BISHOP] = 'B';
+		pieces::PieceSymbols[pieces::WHITE_ROOK] = 'R';
+		pieces::PieceSymbols[pieces::WHITE_QUEEN] = 'Q';
+		pieces::PieceSymbols[pieces::BLACK_PAWN] = 'p';
+		pieces::PieceSymbols[pieces::BLACK_KING] = 'k';
+		pieces::PieceSymbols[pieces::BLACK_KNIGHT] = 'n';
+		pieces::PieceSymbols[pieces::BLACK_BISHOP] = 'b';
+		pieces::PieceSymbols[pieces::BLACK_ROOK] = 'r';
+		pieces::PieceSymbols[pieces::BLACK_QUEEN] = 'q';
+
 		for (int i = 0; i < util::BOARD_SIZE; ++i)
 		{
 			singleBit[i] = util::one << i;

@@ -79,6 +79,8 @@ namespace chess
 		const Piece PAWNS[2]   = { 1, 9 };
 		const Piece ROOKS[2]   = { 6, 14 };
 		const Piece QUEENS[2]  = { 7, 15 };
+
+		extern char PieceSymbols[15];
 	}
 
 	namespace squares

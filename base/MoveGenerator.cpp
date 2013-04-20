@@ -1,13 +1,15 @@
 #include "MoveGenerator.hpp"
 #include "BasicOperations.hpp"
-#include "Display.hpp"
-
-#include <boost/assign.hpp>
-
-using namespace std;
-namespace ba = boost::assign;
 
 #define OINK_MOVEGEN_DIAGNOSTICS
+
+using namespace std;
+
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+#include "Display.hpp"
+#include <boost/assign.hpp>
+namespace ba = boost::assign;
+#endif
 
 namespace chess
 {
@@ -34,6 +36,7 @@ namespace chess
         }
 	}
 
+	//OINK_TODO: generate castling moves!
 	MoveVector MoveGenerator::GenerateKingMoves(const Position &position, int side)
     {
 		MoveVector moves;
@@ -168,6 +171,7 @@ namespace chess
 #endif
 			GenerateMoves(destinations, move, moves, position, side);
         }
+
 		return moves;
     }
     
