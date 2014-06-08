@@ -11,8 +11,9 @@ namespace chess
 {
     class Position
     {
-		bitboard GenerateSide(int side) const;
+		bitboard GenerateSide(Side side) const;
 	public:
+        //15 bitboards (120) plus 64 pieces (256) = 376 bytes. Ouch.
 		bitboard kings[2];
         bitboard rooks[2];
         bitboard knights[2];
@@ -34,27 +35,27 @@ namespace chess
 			//? how do we know what pieces to update, or do we have to regenerate all pieces from full position??
 		}
 
-		Piece GetSquare(int square) const
+		Piece GetSquare(Square square) const
 		{
 			return squares[square];
 		}
 
-		void SetSquare(int square, Piece contents)
+		void SetSquare(Square square, Piece contents)
 		{
 			squares[square] = contents;
 		}
 
-        bitboard GetOtherSide(int side) const
+        bitboard GetOtherSide(Side side) const
         {
             return sides[side ^ 1]; //1 ^ 1 = 0; 0 ^ 1 = 1
         }
 
-        /*bitboard GetSideWithoutKing(int side) const
+        /*bitboard GetSideWithoutKing(Side side) const
         {
             return sides[side] & ~kings[side];
         }
 
-        bitboard GetOtherSideWithoutKing(int side) const
+        bitboard GetOtherSideWithoutKing(Side side) const
         {
             return GetOtherSide(side) & ~kings[side ^ 1];
         }*/
@@ -69,11 +70,11 @@ namespace chess
         //Remove any pieces captured due to an update. 
         //sideCapturing:  the side which did the capture.
 		//diff: "diff" bitboard (bits only set where there's a change).
-        void RemoveCaptured(int sideCapturing, bitboard diff);
+        void RemoveCaptured(Side sideCapturing, bitboard diff);
 
-		char GetPieceSymbolAtIndex(int index) const;
+		char GetPieceSymbolAtIndex(Square index) const;
 
-        char GetPieceSymbolAtIndex(int rank, int file) const
+        char GetPieceSymbolAtIndex(RankFile rank, RankFile file) const
         {
             return GetPieceSymbolAtIndex(RankFileToIndex(rank, file));
         }

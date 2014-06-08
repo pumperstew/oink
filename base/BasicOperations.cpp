@@ -4,9 +4,9 @@
 
 namespace chess 
 {
-    int SinglePieceBitboardToIndex(bitboard singlePiece)
+    Square SinglePieceBitboardToIndex(bitboard singlePiece)
     {
-        int counter = 0;
+        Square counter = 0;
         while (!(singlePiece & util::one)) 
 		{
             singlePiece >>= 1;
@@ -15,33 +15,17 @@ namespace chess
         return counter;
     }
 
-    /*bitboard get_first_set_bit(bitboard b)
-    {
-    int sq;
-    return get_first_set_bit_with_index(b, sq);
-    }*/
-
-    /*bitboard get_first_set_bit_with_index(bitboard b, int &sq)
-    {
-    bitboard test;
-    for (sq = 0; sq < util::NUM_SQUARES; ++sq) {
-    test = b & (util::one << sq);
-    if (test) return test;
-    }
-    return 0;
-    }*/
-
     /*get first set bit in b, return a bitboard with that bit set, with the index
     in sq. clear that bit from b*/
-    bitboard GetAndClearFirstSetBitReturningIndex(bitboard &b, int &sq)
+    bitboard GetAndClearFirstSetBitReturningIndex(bitboard &b, Square &square)
     {
         bitboard test;
-        for (sq = 0; sq < util::NUM_SQUARES; ++sq)
+        for (square = 0; square < util::NUM_SQUARES; ++square)
 		{
-            test = b & (util::one << sq);
+            test = b & (util::one << square);
             if (test)
 			{
-                b ^= (util::one << sq); //clear bit from b
+                b ^= (util::one << square); //clear bit from b
                 return test;
             }
         }
@@ -50,32 +34,39 @@ namespace chess
 
 	bitboard GetAndClearFirstSetBit(bitboard &b)
     {
-        int sq;
-        return GetAndClearFirstSetBitReturningIndex(b, sq);
+        Square square;
+        return GetAndClearFirstSetBitReturningIndex(b, square);
     }
 
-	int GetFirstIndexAndClear(bitboard &b)
+	Square GetFirstIndexAndClear(bitboard &b)
 	{
-		int square;
+		Square square;
         GetAndClearFirstSetBitReturningIndex(b, square);
 		return square;
 	}
 
-    /*bitboard clear_first_set_bit(bitboard b)
+    Square GetFirstIndex(bitboard b)
+	{
+        Square square = squares::NO_SQUARE;
+        for (square = 0; square < util::NUM_SQUARES; ++square)
+		{
+            if ((b & (util::one << square)) != util::nil)
+			{
+                break;
+            }
+        }
+        return square;
+	}
+
+    bool IsSquareOccupied(bitboard b, Square square)
     {
-    bitboard test;
-    for (int i = 0; i < util::NUM_SQUARES; ++i)
-    {
-    test = b & (util::one << i);
-    if (test) return b & ~(util::one << i);
+        return (b & (util::one << square)) != util::nil;
     }
-    return 0;
-    }*/
 
     //take position, get occupancy on 3rd/6th rank, and return position with the 4th/5th rank
     //also filled with the given rank's pieces (as well as its own). this can be used
     //to eliminate jumps over pieces by pawns going 2nd -> 4th rank.
-    bitboard ExcludeFourthOrFifthRank(bitboard pos, int side) 
+    bitboard ExcludeFourthOrFifthRank(bitboard pos, Side side) 
     {
         if (side == sides::white)
             return pos | ((pos & moves::rank_masks[2]) << 8); //OINK_TODO: ugly if test
@@ -85,7 +76,7 @@ namespace chess
 
     //Get occupancy of given rank [ranks::first, ranks::eighth].
 	//Returns occupancy on [0,255] in lowest eight bits of return value.
-    bitboard GetRankOccupancy(bitboard b, int rank)
+    bitboard GetRankOccupancy(bitboard b, RankFile rank)
     {
         return (b >> (rank << 3)) & util::fullrank;
     }
@@ -93,11 +84,11 @@ namespace chess
 	//Get occupancy of given file [0,7].
 	//Returns occupancy on [0,255] in lowest eight bits of return value.
 	//non-trivial, current impl. isn't great. OINK_TODO: replace with magic multiplier implementation, which will be much faster.
-    bitboard GetFileOccupancy(bitboard b, int file)
+    bitboard GetFileOccupancy(bitboard b, RankFile file)
     {
         bitboard occ = 0;
         bitboard thisFileOccupancy = b & moves::file_masks[file]; //mask off everything but this file
-        for (int rank = 0; rank < util::BOARD_SIZE; ++rank)
+        for (RankFile rank = 0; rank < util::BOARD_SIZE; ++rank)
 		{
 			occ |= ( ( (thisFileOccupancy >> RankFileToIndex(rank, file) ) & util::fullrank) //deal with one bit at a time
 				   << rank); //shift up to appropriate bit on [0, 7]
@@ -106,12 +97,12 @@ namespace chess
     }
 
 	//OINK_TODO
-    bitboard GetDiagonalOccupancy_a1h8(bitboard b, int square)
+    bitboard GetDiagonalOccupancy_a1h8(bitboard b, Square square)
     {
         bitboard occ = 0;
         bitboard a1h8_DiagonalOccupancy = b & moves::diagMasks_a1h8[square];
 
-        for (int rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
+        for (RankFile rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
 		{
 			occ |= ( 
 				   ( (a1h8_DiagonalOccupancy >> RankFileToIndex(rankOffset, 0) ) //shift occupancy down by current rank offset.
@@ -122,12 +113,12 @@ namespace chess
     }
 
 	//OINK_TODO
-    bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square)
+    bitboard GetDiagonalOccupancy_a8h1(bitboard b, Square square)
     {
         bitboard occ = 0;
         bitboard a8h1_DiagonalOccupancy = b & moves::diagMasks_a8h1[square];
 
-        for (int rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
+        for (RankFile rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
 		{
 			bitboard shiftedDown = ( (a8h1_DiagonalOccupancy >> RankFileToIndex(rankOffset, 0) ) );
 			occ |= (shiftedDown & util::fullrank);
@@ -145,7 +136,7 @@ namespace chess
     }
 
 
-	//bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square)
+	//bitboard GetDiagonalOccupancy_a8h1(bitboard b, Square square)
 	//{
 	//	bitboard occ = 0;
 	//	bitboard a8h1_DiagonalOccupancy = b & moves::diagMasks_a8h1[square];
@@ -184,18 +175,18 @@ namespace chess
  //       return occ;
 	//}
 	
-	void IndexToRankAndFile(int index, int &rank, int &file)
+	void IndexToRankAndFile(Square index, RankFile &rank, RankFile &file)
 	{
 		rank = index / 8;
-		file = index % 8; //OINK_TODO: can hand optimize this i guess. compiler should do it anyway
+		file = index % 8;
 	}
 
-	int IndexToRank(int index)
+	RankFile IndexToRank(Square index)
 	{
 		return index / 8;
 	}
 
-	int RankFileToIndex(int rank, int file)
+	Square RankFileToIndex(RankFile rank, RankFile file)
 	{
 		return file + (rank << 3);
 	}

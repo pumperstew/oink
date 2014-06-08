@@ -10,10 +10,10 @@ namespace { //internal linkage
 struct BoardIndexRank
 {
 	bitboard board;
-	int	     index;
+	Square	 index;
 	bitboard rankOccupancy;
 
-	BoardIndexRank(bitboard board_, int index_, bitboard rankOccupancy_)
+	BoardIndexRank(bitboard board_, Square index_, bitboard rankOccupancy_)
 		: board(board_), index(index_), rankOccupancy(rankOccupancy_)
 	{}
 };
@@ -25,7 +25,7 @@ struct GenerateSquares
 		vector<BoardIndexRank> allSquares;
 		allSquares.reserve(util::NUM_SQUARES);
 		bitboard square = util::one;
-		for (int i = 0; i < util::NUM_SQUARES; ++i)
+		for (Square i = 0; i < util::NUM_SQUARES; ++i)
 		{
 			bitboard rankOccupancy = square >> (IndexToRank(i) << 3);
 			allSquares.push_back(BoardIndexRank(square, i, rankOccupancy));
@@ -52,7 +52,7 @@ TEST_P(BitwiseOpsTests, SinglePieceBitboardToIndex_ReturnsExpectedIndices)
 TEST_P(BitwiseOpsTests, GetAndClearFirstSetBitReturningIndex_WorksWith_SingleSquareSetOnInitialBoard)
 {
 	bitboard board = GetParam().board;
-	int index;
+	Square index;
 	bitboard result = GetAndClearFirstSetBitReturningIndex(board, index);
 	ASSERT_EQ(GetParam().board, result);
 	ASSERT_EQ(util::nil, board);

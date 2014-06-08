@@ -30,31 +30,31 @@ namespace chess
         const bitboard full = 0xffffffffffffffff;
         const bitboard nil =  0x0000000000000000;
         const bitboard fullrank = 0x00000000000000ff;
-        const int NUM_SQUARES = 64;
-        const int BOARD_SIZE  = 8;
+        const Square   NUM_SQUARES = 64;
+        const RankFile BOARD_SIZE  = 8;
 		extern bitboard singleBit[BOARD_SIZE];
     }
 
 	namespace ranks
 	{
-		const int first   = 0;
-		const int second  = 1;
-		const int third   = 2;
-		const int fourth  = 3;
-		const int fifth   = 4;
-		const int sixth   = 5;
-		const int seventh = 6;
-		const int eighth  = 7;
+		const RankFile first   = 0;
+		const RankFile second  = 1;
+		const RankFile third   = 2;
+		const RankFile fourth  = 3;
+		const RankFile fifth   = 4;
+		const RankFile sixth   = 5;
+		const RankFile seventh = 6;
+		const RankFile eighth  = 7;
 	}
 
     namespace sides
     {
-        const int white = 0;
-        const int black = 1;
-        //const int my_third_rank[] = {2,6};
-		const int ABOUT_TO_PROMOTE[] = {ranks::seventh, ranks::second};
+        const Side white = 0;
+        const Side black = 1;
+        //const RankFile my_third_rank[] = {2,6};
+		const RankFile ABOUT_TO_PROMOTE[] = {ranks::seventh, ranks::second};
 
-        //const int other_side[] = {1,0};
+        //const Side other_side[] = {1,0};
     }
 
 	namespace pieces
@@ -85,77 +85,79 @@ namespace chess
 
 	namespace squares
 	{
-		const int a1 = 0;
-		const int b1 = 1;
-		const int c1 = 2;
-		const int d1 = 3;
-		const int e1 = 4;
-		const int f1 = 5;
-		const int g1 = 6;
-		const int h1 = 7;
+        const Square NO_SQUARE = -1;
 
-		const int a2 = 8;
-		const int b2 = 9;
-		const int c2 = 10;
-		const int d2 = 11;
-		const int e2 = 12;
-		const int f2 = 13;
-		const int g2 = 14;
-		const int h2 = 15;
+		const Square a1 = 0;
+		const Square b1 = 1;
+		const Square c1 = 2;
+		const Square d1 = 3;
+		const Square e1 = 4;
+		const Square f1 = 5;
+		const Square g1 = 6;
+		const Square h1 = 7;
 
-		const int a3 = 16;
-		const int b3 = 17;
-		const int c3 = 18;
-		const int d3 = 19;
-		const int e3 = 20;
-		const int f3 = 21;
-		const int g3 = 22;
-		const int h3 = 23;
+		const Square a2 = 8;
+		const Square b2 = 9;
+		const Square c2 = 10;
+		const Square d2 = 11;
+		const Square e2 = 12;
+		const Square f2 = 13;
+		const Square g2 = 14;
+		const Square h2 = 15;
 
-		const int a4 = 24;
-		const int b4 = 25;
-		const int c4 = 26;
-		const int d4 = 27;
-		const int e4 = 28;
-		const int f4 = 29;
-		const int g4 = 30;
-		const int h4 = 31;
+		const Square a3 = 16;
+		const Square b3 = 17;
+		const Square c3 = 18;
+		const Square d3 = 19;
+		const Square e3 = 20;
+		const Square f3 = 21;
+		const Square g3 = 22;
+		const Square h3 = 23;
 
-		const int a5 = 32;
-		const int b5 = 33;
-		const int c5 = 34;
-		const int d5 = 35;
-		const int e5 = 36;
-		const int f5 = 37;
-		const int g5 = 38;
-		const int h5 = 39;
+		const Square a4 = 24;
+		const Square b4 = 25;
+		const Square c4 = 26;
+		const Square d4 = 27;
+		const Square e4 = 28;
+		const Square f4 = 29;
+		const Square g4 = 30;
+		const Square h4 = 31;
 
-		const int a6 = 40;
-		const int b6 = 41;
-		const int c6 = 42;
-		const int d6 = 43;
-		const int e6 = 44;
-		const int f6 = 45;
-		const int g6 = 46;
-		const int h6 = 47;
+		const Square a5 = 32;
+		const Square b5 = 33;
+		const Square c5 = 34;
+		const Square d5 = 35;
+		const Square e5 = 36;
+		const Square f5 = 37;
+		const Square g5 = 38;
+		const Square h5 = 39;
 
-		const int a7 = 48;
-		const int b7 = 49;
-		const int c7 = 50;
-		const int d7 = 51;
-		const int e7 = 52;
-		const int f7 = 53;
-		const int g7 = 54;
-		const int h7 = 55;
+		const Square a6 = 40;
+		const Square b6 = 41;
+		const Square c6 = 42;
+		const Square d6 = 43;
+		const Square e6 = 44;
+		const Square f6 = 45;
+		const Square g6 = 46;
+		const Square h6 = 47;
 
-		const int a8 = 56;
-		const int b8 = 57;
-		const int c8 = 58;
-		const int d8 = 59;
-		const int e8 = 60;
-		const int f8 = 61;
-		const int g8 = 62;
-		const int h8 = 63;
+		const Square a7 = 48;
+		const Square b7 = 49;
+		const Square c7 = 50;
+		const Square d7 = 51;
+		const Square e7 = 52;
+		const Square f7 = 53;
+		const Square g7 = 54;
+		const Square h7 = 55;
+
+		const Square a8 = 56;
+		const Square b8 = 57;
+		const Square c8 = 58;
+		const Square d8 = 59;
+		const Square e8 = 60;
+		const Square f8 = 61;
+		const Square g8 = 62;
+		const Square h8 = 63;
 	}
 
     namespace squarebits

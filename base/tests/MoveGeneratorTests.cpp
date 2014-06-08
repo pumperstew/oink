@@ -39,70 +39,92 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThe
 	ASSERT_TRUE(moves.empty());
 }
 
-void SetWhiteKnightAt(Position &position, int square)
+void SetWhiteKnightAt(Position &position, Square square)
 {
 	position.knights[sides::white] |= squarebits::indexed[square];
 	position.UpdateSides();
 	position.squares[square] = pieces::WHITE_KNIGHT;
 }
 
-void SetWhiteKingAt(Position &position, int square)
+void SetWhiteKingAt(Position &position, Square square)
 {
 	position.kings[sides::white] |= squarebits::indexed[square];
 	position.UpdateSides();
 	position.squares[square] = pieces::WHITE_KING;
 }
 
-void SetWhitePawnAt(Position &position, int square)
+void SetBlackKingAt(Position &position, Square square)
+{
+	position.kings[sides::black] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::BLACK_KING;
+}
+
+void SetWhitePawnAt(Position &position, Square square)
 {
 	position.pawns[sides::white] |= squarebits::indexed[square];
 	position.UpdateSides();
 	position.squares[square] = pieces::WHITE_PAWN;
 }
 
-void SetWhiteRookAt(Position &position, int square)
-{
-	position.rooks[sides::white] |= squarebits::indexed[square];
-	position.UpdateSides();
-	position.squares[square] = pieces::WHITE_ROOK;
-}
-
-void SetWhiteBishopAt(Position &position, int square)
-{
-	position.bishops[sides::white] |= squarebits::indexed[square];
-	position.UpdateSides();
-	position.squares[square] = pieces::WHITE_BISHOP;
-}
-
-void SetBlackPawnAt(Position &position, int square)
+void SetBlackPawnAt(Position &position, Square square)
 {
 	position.pawns[sides::black] |= squarebits::indexed[square];
 	position.UpdateSides();
 	position.squares[square] = pieces::BLACK_PAWN;
 }
 
-void SetBlackBishopAt(Position &position, int square)
+void SetWhiteRookAt(Position &position, Square square)
+{
+	position.rooks[sides::white] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::WHITE_ROOK;
+}
+
+void SetBlackRookAt(Position &position, Square square)
+{
+	position.rooks[sides::black] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::BLACK_ROOK;
+}
+
+void SetWhiteBishopAt(Position &position, Square square)
+{
+	position.bishops[sides::white] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::WHITE_BISHOP;
+}
+
+void SetBlackBishopAt(Position &position, Square square)
 {
 	position.bishops[sides::black] |= squarebits::indexed[square];
 	position.UpdateSides();
 	position.squares[square] = pieces::BLACK_BISHOP;
 }
 
-void CheckMoveIsInList(const MoveVector &moves, int source, int destination, Piece piece, Piece captured, Piece promotion = pieces::NONE)
+void SetWhiteQueenAt(Position &position, Square square)
+{
+	position.queens[sides::white] |= squarebits::indexed[square];
+	position.UpdateSides();
+	position.squares[square] = pieces::WHITE_QUEEN;
+}
+
+void CheckMoveIsInList(const MoveVector &moves, Square source, Square destination, Piece piece, Piece captured, Piece promotion = pieces::NONE, Piece castling = pieces::NONE)
 {
 	auto moveIt = boost::find_if(moves, [&](const Move& move) { 
 		return move.GetSource()			== source && 
 			   move.GetDestination()    == destination && 
 			   move.GetPromotionPiece() == promotion &&
+               move.GetCastling()       == castling &&
 			   move.GetPiece()			== piece &&
 			   move.GetCapturedPiece()  == captured;
 	});
 	ASSERT_NE(moves.end(), moveIt);
 }
 
-void CheckMovesDestinationVarying(const MoveVector &moves, int source, Piece piece, Piece captured, const std::vector<int> &destinations, Piece promotion = pieces::NONE)
+void CheckMovesDestinationVarying(const MoveVector &moves, Square source, Piece piece, Piece captured, const std::vector<Square> &destinations, Piece promotion = pieces::NONE)
 {
-	boost::for_each(destinations, [&](int destination) { CheckMoveIsInList(moves, source, destination, piece, captured, promotion); } );
+	boost::for_each(destinations, [&](Square destination) { CheckMoveIsInList(moves, source, destination, piece, captured, promotion); } );
 }
 
 //******************************************************************************************************************************************
@@ -189,6 +211,40 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	ASSERT_EQ(8, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KING, pieces::NONE,
 		ba::list_of(squares::e6)(squares::e4)(squares::f5)(squares::d5)(squares::f6)(squares::d6)(squares::d4)(squares::f4));
+}
+
+// Castling: white
+TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForWhiteKingOn_e1_WithRooksInAppropriatePlaces)
+{
+	SetWhiteKingAt(position, squares::e1);
+    SetWhiteRookAt(position, squares::a1);
+    SetWhiteRookAt(position, squares::h1);
+
+	auto moves = generator.GenerateKingMoves(position, sides::white);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e1, pieces::WHITE_KING, pieces::NONE,
+		ba::list_of(squares::d1)(squares::d2)(squares::e2)(squares::f2)(squares::f1)
+    );
+    CheckMoveIsInList(moves, squares::e1, squares::g1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
+    CheckMoveIsInList(moves, squares::e1, squares::c1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
+}
+
+// Castling: black
+TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForBlackKingOn_e8_WithRooksInAppropriatePlaces)
+{
+	SetBlackKingAt(position, squares::e8);
+    SetBlackRookAt(position, squares::a8);
+    SetBlackRookAt(position, squares::h8);
+
+	auto moves = generator.GenerateKingMoves(position, sides::black);
+
+	ASSERT_EQ(7, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e8, pieces::BLACK_KING, pieces::NONE,
+		ba::list_of(squares::d8)(squares::d7)(squares::e7)(squares::f7)(squares::f8)
+    );
+    CheckMoveIsInList(moves, squares::e8, squares::g8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, pieces::BLACK_KING);
+    CheckMoveIsInList(moves, squares::e8, squares::c8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, pieces::BLACK_KING);
 }
 
 //******************************************************************************************************************************************
@@ -659,6 +715,322 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
 		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
 				   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2));
+}
+
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//********************************************************** QUEENS ************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+//******************************************************************************************************************************************
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_a1_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::a1);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(21, moves.size());
+	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::b2)(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8)
+				   (squares::a2)(squares::a3)(squares::a4)(squares::a5)(squares::a6)(squares::a7)(squares::a8)
+				   (squares::b1)(squares::c1)(squares::d1)(squares::e1)(squares::f1)(squares::g1)(squares::h1)
+	);
+}
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_h8_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::h8);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(21, moves.size());
+	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::b2)(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::a1)
+				   (squares::a8)(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)
+				   (squares::h7)(squares::h6)(squares::h5)(squares::h4)(squares::h3)(squares::h2)(squares::h1)
+	);
+}
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_a8_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::a8);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(21, moves.size());
+	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::h1)
+		           (squares::a2)(squares::a3)(squares::a4)(squares::a5)(squares::a6)(squares::a7)(squares::a1)
+				   (squares::h8)(squares::b8)(squares::c8)(squares::d8)(squares::e8)(squares::f8)(squares::g8)
+	);
+}
+
+//Corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_h1_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::h1);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(21, moves.size());
+	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::a8)
+				   (squares::h7)(squares::h6)(squares::h5)(squares::h4)(squares::h3)(squares::h2)(squares::h8)
+				   (squares::b1)(squares::c1)(squares::d1)(squares::e1)(squares::f1)(squares::g1)(squares::a1)
+	);
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_b2_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::b2);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(23, moves.size());
+	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::g7)(squares::h8)(squares::a1)(squares::c1)(squares::a3)
+				   (squares::b1)(squares::b3)(squares::b4)(squares::b5)(squares::b6)(squares::b7)(squares::b8)
+				   (squares::a2)(squares::c2)(squares::d2)(squares::e2)(squares::f2)(squares::g2)(squares::h2)
+	);
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_g7_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::g7);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(23, moves.size());
+	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::c3)(squares::d4)(squares::e5)(squares::f6)(squares::b2)(squares::h8)(squares::a1)(squares::h6)(squares::f8)
+		           (squares::g1)(squares::g2)(squares::g3)(squares::g4)(squares::g5)(squares::g6)(squares::g8)
+		           (squares::a7)(squares::b7)(squares::c7)(squares::d7)(squares::e7)(squares::f7)(squares::h7)
+	);
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_b7_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::b7);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(23, moves.size());
+	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::a8)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::g2)(squares::h1)(squares::a6)(squares::c8)
+        		   (squares::b1)(squares::b3)(squares::b4)(squares::b5)(squares::b6)(squares::b2)(squares::b8)
+		           (squares::a7)(squares::g7)(squares::c7)(squares::d7)(squares::e7)(squares::f7)(squares::h7)
+	);
+}
+
+//Next to corners
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_g2_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::g2);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(23, moves.size());
+	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::a8)(squares::b7)(squares::c6)(squares::d5)(squares::e4)(squares::f3)(squares::h1)(squares::h3)(squares::f1)
+                   (squares::g1)(squares::g7)(squares::g3)(squares::g4)(squares::g5)(squares::g6)(squares::g8)
+		           (squares::a2)(squares::c2)(squares::d2)(squares::e2)(squares::f2)(squares::b2)(squares::h2)
+	);
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::e5);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(27, moves.size());
+    CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+        ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+                   (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e4_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::e4);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(27, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f5)(squares::g6)(squares::h7)(squares::d3)(squares::c2)(squares::b1)
+		           (squares::d5)(squares::c6)(squares::b7)(squares::a8)(squares::f3)(squares::g2)(squares::h1)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e5)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a4)(squares::b4)(squares::c4)(squares::d4)(squares::f4)(squares::g4)(squares::h4)
+    );
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_d4_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::d4);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(27, moves.size());
+	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::e5)(squares::f6)(squares::g7)(squares::h8)(squares::c3)(squares::b2)(squares::a1)
+		           (squares::c5)(squares::b6)(squares::a7)(squares::e3)(squares::f2)(squares::g1)
+                   (squares::d6)(squares::d7)(squares::d8)(squares::d5)(squares::d3)(squares::d2)(squares::d1)
+                   (squares::a4)(squares::b4)(squares::c4)(squares::e4)(squares::f4)(squares::g4)(squares::h4)
+    );
+}
+
+//Central
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_d5_OnOtherwiseClearBoard)
+{
+	SetWhiteQueenAt(position, squares::d5);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(27, moves.size());
+	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::e6)(squares::f7)(squares::g8)(squares::c4)(squares::b3)(squares::a2)
+		           (squares::c6)(squares::b7)(squares::a8)(squares::e4)(squares::f3)(squares::g2)(squares::h1)
+                   (squares::d6)(squares::d7)(squares::d8)(squares::d4)(squares::d3)(squares::d2)(squares::d1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::e5)(squares::f5)(squares::g5)(squares::h5)
+    );
+}
+
+//Down left capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_WithBlackPieceOn_b2)
+{
+	SetWhiteQueenAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::b2);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(26, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)
+		           (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
+	CheckMoveIsInList(moves, squares::e5, squares::b2, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+//Up left capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_WithBlackPieceOn_c7)
+{
+	SetWhiteQueenAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::c7);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(26, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+		           (squares::d6)(squares::f4)(squares::g3)(squares::h2)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
+	CheckMoveIsInList(moves, squares::e5, squares::c7, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+//Down right capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_WithBlackPieceOn_f4)
+{
+	SetWhiteQueenAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f4);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(25, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+		           (squares::d6)(squares::c7)(squares::b8)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
+	CheckMoveIsInList(moves, squares::e5, squares::f4, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+//Up right capture from central position
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_WithBlackPieceOn_f6)
+{
+	SetWhiteQueenAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f6);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(25, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f4)(squares::g3)(squares::h2)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+		           (squares::d6)(squares::c7)(squares::b8)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
+	CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+//Up right capture from corner
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_a1_WithBlackPieceOn_c3)
+{
+	SetWhiteQueenAt(position, squares::a1);
+	SetBlackPawnAt(position, squares::c3);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(16, moves.size());
+    CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::a2)(squares::a3)(squares::a4)(squares::a5)(squares::a6)(squares::a7)(squares::a8)
+		           (squares::b1)(squares::c1)(squares::d1)(squares::e1)(squares::f1)(squares::g1)(squares::h1)
+                   (squares::b2)
+    );
+	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_QUEEN, pieces::NONE);
+	CheckMoveIsInList(moves, squares::a1, squares::c3, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_c4_WithBlackPieceOn_b3)
+{
+	SetWhiteQueenAt(position, squares::c4);
+	SetBlackPawnAt(position, squares::b3);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(24, moves.size());
+	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::d5)(squares::e6)(squares::f7)(squares::g8)(squares::b5)(squares::a6)(squares::d3)
+		           (squares::e2)(squares::f1)
+                   (squares::c3)(squares::c2)(squares::c1)(squares::c5)(squares::c6)(squares::c7)(squares::c8)
+                   (squares::a4)(squares::b4)(squares::d4)(squares::e4)(squares::f4)(squares::g4)(squares::h4)
+    );
+	CheckMoveIsInList(moves, squares::c4, squares::b3, pieces::WHITE_QUEEN, pieces::BLACK_PAWN);
+}
+
+//No clash, so same as clear board.
+TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesForQueenOn_e5_WithBlackPieceOn_f3)
+{
+	SetWhiteQueenAt(position, squares::e5);
+	SetBlackPawnAt(position, squares::f3);
+
+	auto moves = generator.GenerateQueenMoves(position, sides::white);
+
+	ASSERT_EQ(27, moves.size());
+	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
+		ba::list_of(squares::f6)(squares::g7)(squares::h8)(squares::d4)(squares::c3)(squares::b2)(squares::a1)
+		           (squares::d6)(squares::c7)(squares::b8)(squares::f4)(squares::g3)(squares::h2)
+                   (squares::e6)(squares::e7)(squares::e8)(squares::e4)(squares::e3)(squares::e2)(squares::e1)
+                   (squares::a5)(squares::b5)(squares::c5)(squares::d5)(squares::f5)(squares::g5)(squares::h5)
+    );
 }
 
 }

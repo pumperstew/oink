@@ -126,7 +126,7 @@ namespace chess
 		wholeBoard = sides[sides::white] | sides[sides::black];
 	}
 
-	char Position::GetPieceSymbolAtIndex(int index) const 
+	char Position::GetPieceSymbolAtIndex(Square index) const 
 	{
 		bitboard b = util::one << index;
 		if (b & kings[sides::white])

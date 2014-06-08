@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(oink)
 
-add_definitions(/D _VARIADIC_MAX=10) #VS2012 hack for Google test compilation. It's also needed on code compiling *AGAINST* Google test.
-
 ##################################### Google test ##########################################
 
 include(ExternalProject)
@@ -11,7 +9,7 @@ ExternalProject_Add(
    gtest
    PREFIX gtest
    GIT_REPOSITORY git://github.com/narvi/googletest.git
-   GIT_TAG vc11
+   GIT_TAG oink
    CMAKE_ARGS -Dgtest_force_shared_crt:BOOL=ON
    INSTALL_COMMAND ""
 )

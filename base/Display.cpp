@@ -15,9 +15,9 @@ namespace chess
 	void PrintPosition(const Position &position)
 	{
 		printf("\n");
-		for (int rank = 7; rank >= 0; --rank)
+		for (RankFile rank = 7; rank >= 0; --rank)
 		{
-			for (int file = 0; file < 8; ++file)
+			for (RankFile file = 0; file < 8; ++file)
 			{
 				printf("%c ", pieces::PieceSymbols[position.GetSquare(RankFileToIndex(rank, file))]);
 			}
@@ -47,7 +47,7 @@ namespace chess
 		};
 	}
 //#define DISPLAY_DISABLED
-	void PrintBitboards(const vector<pair<bitboard, string>> &bitboards, int highlightSquare)
+	void PrintBitboards(const vector<pair<bitboard, string>> &bitboards, Square highlightSquare)
 	{
 #ifndef DISPLAY_DISABLED
 		auto stdOutHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
@@ -69,13 +69,13 @@ namespace chess
 		}
 		printf("\n");
 
-		for (int rank = 7; rank >= 0; --rank)
+		for (RankFile rank = 7; rank >= 0; --rank)
 		{
 			for (size_t j = 0; j < bitboards.size(); ++j)
 			{
-				for (int file = 0; file < util::BOARD_SIZE; ++file)
+				for (RankFile file = 0; file < util::BOARD_SIZE; ++file)
 				{
-					int index = RankFileToIndex(rank, file);
+					Square index = RankFileToIndex(rank, file);
 					auto value = (bitboards[j].first >> index) & util::one;
 					if (index == highlightSquare)
 					{
@@ -95,7 +95,7 @@ namespace chess
 #endif
 	}
 	
-	void PrintBitboard(bitboard board, const char* title, int highlightSquare)
+	void PrintBitboard(bitboard board, const char* title, Square highlightSquare)
 	{
 		vector<pair<bitboard, string>> bitboards = ba::list_of(make_pair(board, title));
 		PrintBitboards(bitboards, highlightSquare);

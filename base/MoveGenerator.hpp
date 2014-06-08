@@ -9,12 +9,13 @@ namespace chess
 	class MoveGenerator
 	{
 	public:
-		MoveVector GeneratePawnMoves(const Position &position,   int side);
-		MoveVector GenerateKingMoves(const Position &position,   int side);
-		MoveVector GenerateRookMoves(const Position &position,   int side);
-        MoveVector GenerateKnightMoves(const Position &position, int side);
-        MoveVector GenerateBishopMoves(const Position &position, int side);
-		MoveVector GenerateAllMoves(const Position &position,	 int side);
+		MoveVector GeneratePawnMoves(const Position &position,   Side side);
+		MoveVector GenerateKingMoves(const Position &position,   Side side);
+		MoveVector GenerateRookMoves(const Position &position,   Side side);
+        MoveVector GenerateKnightMoves(const Position &position, Side side);
+        MoveVector GenerateBishopMoves(const Position &position, Side side);
+		MoveVector GenerateQueenMoves(const Position &position,  Side side);
+		MoveVector GenerateAllMoves(const Position &position,	 Side side);
 	};
 }
 

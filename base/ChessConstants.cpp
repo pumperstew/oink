@@ -32,18 +32,18 @@ namespace chess
         bitboard diagMasks_a8h1[util::NUM_SQUARES];
     }
 
-	void GenerateRankAndFileMasks()
+	static void GenerateRankAndFileMasks()
 	{
-		for (int i = 0; i < util::BOARD_SIZE; ++i) { //rank or file loop
+		for (RankFile i = 0; i < util::BOARD_SIZE; ++i) { //rank or file loop
             file_masks[i] = util::nil;
             rank_masks[i] = util::fullrank << (i << 3);
-            for (int j = 0; j < util::BOARD_SIZE; ++j) { //rank loop for file masks
+            for (RankFile j = 0; j < util::BOARD_SIZE; ++j) { //rank loop for file masks
                 file_masks[i] |= util::one << (j*util::BOARD_SIZE + i);
             }
         }
 	}
 
-	void GenerateKnightMoves(int square, int rank, int file, bitboard squareBitboard)
+	void GenerateKnightMoves(Square square, RankFile rank, RankFile file, bitboard squareBitboard)
 	{
 		knight_moves[square] = 0;
         if (rank >= 2) //2 down, 1 left; 2 down, 1 right
@@ -57,25 +57,25 @@ namespace chess
 	}
 
 	//Turn on bits to the right of the given square, which is assumed to be on the given file.
-	bitboard TurnOnBitsToRight(bitboard squareBit, int file)
+	static bitboard TurnOnBitsToRight(bitboard squareBit, RankFile file)
 	{
 		bitboard result = util::nil;
-		for (int j = 1; j < util::BOARD_SIZE - file; ++j) 
+		for (RankFile j = 1; j < util::BOARD_SIZE - file; ++j) 
 			result |= (squareBit << j);
 
 		return result;
 	}
 
-	bitboard TurnOnBitsToLeft(bitboard squareBit, int file)
+	static bitboard TurnOnBitsToLeft(bitboard squareBit, RankFile file)
 	{
 		bitboard result = util::nil;
-		for (int j = 1; j <= file; ++j) 
+		for (RankFile j = 1; j <= file; ++j) 
 			result |= (squareBit >> j);
 
 		return result;
 	}
 
-	bitboard GenerateRightSliderMoves(bitboard rankOccupancy, bitboard bitsOnToRight)
+	static bitboard GenerateRightSliderMoves(bitboard rankOccupancy, bitboard bitsOnToRight)
 	{
 		bitboard rightMoves = rankOccupancy & bitsOnToRight; //1s where pieces sit, to right of sq
         rightMoves = ( 
@@ -86,7 +86,7 @@ namespace chess
 		return rightMoves;
 	}
 
-	bitboard GenerateLeftSliderMoves(bitboard rankOccupancy, bitboard bitsOnToLeft)
+	static bitboard GenerateLeftSliderMoves(bitboard rankOccupancy, bitboard bitsOnToLeft)
 	{
 		bitboard leftMoves = rankOccupancy & bitsOnToLeft;
         leftMoves = (
@@ -97,7 +97,7 @@ namespace chess
 		return leftMoves;
 	}
 
-	bitboard GenerateUpSliderMoves(bitboard verticalOccupancy, bitboard bitsOnToUp)
+	static bitboard GenerateUpSliderMoves(bitboard verticalOccupancy, bitboard bitsOnToUp)
 	{
 		bitboard upMoves = verticalOccupancy & bitsOnToUp; //same principle as above
         upMoves = (
@@ -108,7 +108,7 @@ namespace chess
 		return upMoves;
 	}
 
-	bitboard GenerateDownSliderMoves(bitboard verticalOccupancy, bitboard bitsOnToDown)
+	static bitboard GenerateDownSliderMoves(bitboard verticalOccupancy, bitboard bitsOnToDown)
 	{
 		bitboard downMoves = verticalOccupancy & bitsOnToDown;
         downMoves = (
@@ -119,7 +119,7 @@ namespace chess
 		return downMoves;
 	}
 
-	bitboard GenerateDiagonal_a1h8_Moves(bitboard diagonalOcc_a1h8, bitboard bitsOnToUpAndRight, bitboard bitsOnToDownAndLeft)
+	static bitboard GenerateDiagonal_a1h8_Moves(bitboard diagonalOcc_a1h8, bitboard bitsOnToUpAndRight, bitboard bitsOnToDownAndLeft)
 	{
 		bitboard upRightMoves  = diagonalOcc_a1h8 & bitsOnToUpAndRight;
 		bitboard downLeftMoves = diagonalOcc_a1h8 & bitsOnToDownAndLeft;
@@ -150,7 +150,7 @@ namespace chess
 		return upRightMoves | downLeftMoves;
 	}
 
-	bitboard GenerateDiagonal_a8h1_Moves(bitboard diagonalOcc_a8h1, bitboard bitsOnToUpAndLeft, bitboard bitsOnToDownAndRight)
+	static bitboard GenerateDiagonal_a8h1_Moves(bitboard diagonalOcc_a8h1, bitboard bitsOnToUpAndLeft, bitboard bitsOnToDownAndRight)
 	{
 		bitboard upAndLeftMoves    = diagonalOcc_a8h1 & bitsOnToUpAndLeft;
 		bitboard squaresOccupiedDownAndRight = diagonalOcc_a8h1 & bitsOnToDownAndRight;
@@ -196,10 +196,10 @@ namespace chess
 		return upAndLeftMoves | downAndRightMoves;
 	}
 
-	bitboard RotateOccupancyVertical(bitboard occupancy /*in low eight bits*/, int desiredFile)
+	static bitboard RotateOccupancyVertical(bitboard occupancy /*in low eight bits*/, RankFile desiredFile)
 	{
 		bitboard vertOcc = util::nil; //vertical occupancy is a bit tricky, as bits not contiguous
-        for (int j = 0; j < util::BOARD_SIZE; ++j)
+        for (RankFile j = 0; j < util::BOARD_SIZE; ++j)
 		{
             bitboard stateOfBit = (occupancy & singleBit[j]) >> j; //get the state of the bit at j (here, j = file), and shift down to LSB.
             vertOcc |= (stateOfBit << RankFileToIndex(j, desiredFile)); //shift back up to correct point. Here, j = rank.
@@ -209,7 +209,7 @@ namespace chess
 
 	const int a1h8_direction = 0, a8h1_direction = 1, rankDiagIndex = 0, fileDiagIndex = 1;
 
-	bitboard RotateOccupanyDiagonal_a1h8(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
+	static bitboard RotateOccupanyDiagonal_a1h8(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
 	{
 		bitboard diagonalOcc_a1h8 = util::nil;
 		int i = 0;
@@ -222,7 +222,7 @@ namespace chess
 		return diagonalOcc_a1h8;
 	}
 
-	bitboard RotateOccupanyDiagonal_a8h1(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
+	static bitboard RotateOccupanyDiagonal_a8h1(bitboard occupancy /*in low eight bits*/, int diagonalStart[2][2], int diagonalLength[2])
 	{
 		bitboard diagonalOcc_a8h1 = util::nil;
 		int i = 0;
@@ -254,7 +254,7 @@ namespace chess
 		return diagonalOcc_a8h1;
 	}
 
-	void GenerateDiagonalStartAndLength(int rank, int file, int diagonalStart[2][2], int diagonalLength[2])
+	static void GenerateDiagonalStartAndLength(int rank, int file, int diagonalStart[2][2], int diagonalLength[2])
 	{
 		 //OINK_TODO: fix rank>file branch??
 		if (rank > file) //square we're considering (i) is in upper/left diagonal half
@@ -266,7 +266,7 @@ namespace chess
             diagonalLength[a1h8_direction] = util::BOARD_SIZE - diagonalStart[a1h8_direction][rankDiagIndex]; //8 - starting rank.
             diagonalLength[a8h1_direction] = util::BOARD_SIZE - diagonalStart[a8h1_direction][fileDiagIndex];
         } 
-		else //See above - symmtery.
+		else //See above - symmetry.
 		{
             diagonalStart[a1h8_direction][rankDiagIndex] = 0;
             diagonalStart[a1h8_direction][fileDiagIndex] = file - rank;

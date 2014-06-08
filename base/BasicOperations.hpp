@@ -5,27 +5,23 @@
 
 namespace chess 
 {
-	int SinglePieceBitboardToIndex(bitboard singlePiece);
-	int GetFirstIndexAndClear(bitboard &b);
-	bitboard GetAndClearFirstSetBitReturningIndex(bitboard &b, int &sq);
+	Square SinglePieceBitboardToIndex(bitboard singlePiece);
+	Square GetFirstIndexAndClear(bitboard &b);
+    Square GetFirstIndex(bitboard b);
+	bitboard GetAndClearFirstSetBitReturningIndex(bitboard &b, Square &sq);
 	bitboard GetAndClearFirstSetBit(bitboard &b);
 	
-	bitboard GetRankOccupancy(bitboard b, int rank);
-	bitboard GetFileOccupancy(bitboard b, int rank);
-	bitboard GetDiagonalOccupancy_a1h8(bitboard b, int square);
-	bitboard GetDiagonalOccupancy_a8h1(bitboard b, int square);
+    bool IsSquareOccupied(bitboard b, Square square);
+	bitboard GetRankOccupancy(bitboard b, RankFile rank);
+	bitboard GetFileOccupancy(bitboard b, RankFile rank);
+	bitboard GetDiagonalOccupancy_a1h8(bitboard b, Square square);
+	bitboard GetDiagonalOccupancy_a8h1(bitboard b, Square square);
 
-	void IndexToRankAndFile(int index, int &rank, int &file);
-	int  RankFileToIndex(int rank, int file);
-	int  IndexToRank(int index);
+	void   IndexToRankAndFile(Square index, RankFile &rank, RankFile &file);
+	Square RankFileToIndex(RankFile rank, RankFile file);
+	RankFile    IndexToRank(Square index);
 	
-	bitboard ExcludeFourthOrFifthRank(bitboard pos, int side);
-	/*
-	bitboard get_first_set_bit(bitboard b);
-	bitboard get_and_clear_first_set_bit(bitboard &b);
-	bitboard get_first_set_bit_with_index(bitboard b, int &sq);
-	
-	bitboard clear_first_set_bit(bitboard b);*/
+	bitboard ExcludeFourthOrFifthRank(bitboard pos, Side side);
 }
 
 #endif //BASICOPERATIONS_HPP

@@ -6,19 +6,29 @@
 using namespace std;
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
-#include "Display.hpp"
-#include <boost/assign.hpp>
-namespace ba = boost::assign;
+    #include "Display.hpp"
+    #include <boost/assign.hpp>
+    namespace ba = boost::assign;
 #endif
 
 namespace chess
 {
-	//OINK_TODO: probably better to specialise for pawns to prevent branch for all other pieces.
-	void GenerateMoves(bitboard destinations, Move &move, MoveVector &moves, const Position &position, int side, bool promoting = false)
+	static void DestinationsMoveGenLoop(bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side)
 	{
 		while (destinations)
         {
-			int destinationSquare = GetFirstIndexAndClear(destinations);
+			Square destinationSquare = GetFirstIndexAndClear(destinations);
+			move.SetDestination(destinationSquare);
+			move.SetCapturedPiece(position.squares[destinationSquare]);
+            moves.push_back(move);
+        }
+	}
+
+    static void DestinationsMoveGenLoopPawns(bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side, bool promoting)
+	{
+		while (destinations)
+        {
+			Square destinationSquare = GetFirstIndexAndClear(destinations);
 			move.SetDestination(destinationSquare);
 			move.SetCapturedPiece(position.squares[destinationSquare]);
 			if (promoting)
@@ -30,29 +40,64 @@ namespace chess
 				move.SetPromotionPiece(pieces::KNIGHTS[side]);
 				moves.push_back(move);
 				move.SetPromotionPiece(pieces::BISHOPS[side]);
-				moves.push_back(move);
 			}
-			else moves.push_back(move);
+            moves.push_back(move);
         }
 	}
 
-	//OINK_TODO: generate castling moves!
-	MoveVector MoveGenerator::GenerateKingMoves(const Position &position, int side)
+	//OINK_TODO: castling moves will need to be checked for validity later.
+	MoveVector MoveGenerator::GenerateKingMoves(const Position &position, Side side)
     {
 		MoveVector moves;
 		Move move;
 		move.SetPiece(pieces::KINGS[side]);
 
 		bitboard king = position.kings[side];
-		int square = GetFirstIndexAndClear(king);
+		Square square = GetFirstIndex(king);
 		move.SetSource(square);
 
-		GenerateMoves(moves::king_moves[square] & ~position.sides[side], move, moves, position, side);
+		DestinationsMoveGenLoop(moves::king_moves[square] & ~position.sides[side], move, moves, position, side);
 
+        if (side == sides::white && square == squares::e1)
+        {
+            if (position.squares[squares::h1] == pieces::WHITE_ROOK)
+            {
+                move.SetDestination(squares::g1);
+                move.SetCapturedPiece(pieces::NONE);
+                move.SetCastling(pieces::WHITE_KING);
+                moves.push_back(move);
+            }
+
+            if (position.squares[squares::a1] == pieces::WHITE_ROOK)
+            {
+                move.SetDestination(squares::c1);
+                move.SetCapturedPiece(pieces::NONE);
+                move.SetCastling(pieces::WHITE_KING);
+                moves.push_back(move);
+            }
+        }
+        else if (side == sides::black && square == squares::e8)
+        {
+            if (position.squares[squares::h8] == pieces::BLACK_ROOK)
+            {
+                move.SetDestination(squares::g8);
+                move.SetCapturedPiece(pieces::NONE);
+                move.SetCastling(pieces::BLACK_KING);
+                moves.push_back(move);
+            }
+
+            if (position.squares[squares::a8] == pieces::BLACK_ROOK)
+            {
+                move.SetDestination(squares::c8);
+                move.SetCapturedPiece(pieces::NONE);
+                move.SetCastling(pieces::BLACK_KING);
+                moves.push_back(move);
+            }
+        }
 		return moves;
     }
 
-    MoveVector MoveGenerator::GenerateKnightMoves(const Position &position, int side)
+    MoveVector MoveGenerator::GenerateKnightMoves(const Position &position, Side side)
     {
 		MoveVector moves;
 		Move move;
@@ -61,10 +106,10 @@ namespace chess
         bitboard knights = position.knights[side];
         while (knights)
         {
-			int square = GetFirstIndexAndClear(knights);
+			Square square = GetFirstIndexAndClear(knights);
 			move.SetSource(square);
 
-			GenerateMoves(moves::knight_moves[square] & ~position.sides[side], move, moves, position, side);
+			DestinationsMoveGenLoop(moves::knight_moves[square] & ~position.sides[side], move, moves, position, side);
         }
 		return moves;
     }
@@ -75,7 +120,7 @@ namespace chess
     //newPosition.knights[side] = (newPosition.knights[side] | destinationBitboard) & ~thisKnight;
     //newPosition.RemoveCaptured(side, newPosition.knights[side]);
 
-	MoveVector MoveGenerator::GeneratePawnMoves(const Position &position, int side)
+	MoveVector MoveGenerator::GeneratePawnMoves(const Position &position, Side side)
     {
 		MoveVector moves;
 		Move move;
@@ -84,10 +129,10 @@ namespace chess
         bitboard pawns = position.pawns[side];
         while (pawns)
         {
-            int square = GetFirstIndexAndClear(pawns);
+            Square square = GetFirstIndexAndClear(pawns);
 			move.SetSource(square);
 
-			int rank = IndexToRank(square);
+			RankFile rank = IndexToRank(square);
 			bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
 
 			bitboard wholeBoard = position.wholeBoard;
@@ -102,81 +147,102 @@ namespace chess
 			PrintBitboard(position.wholeBoard, "wholeBoard before", square);
 			PrintBitboard(wholeBoard, "wholeBoard", square);*/
 #endif
-			GenerateMoves(destinations, move, moves, position, side, promoting);
+			DestinationsMoveGenLoopPawns(destinations, move, moves, position, side, promoting);
 
 			destinations = moves::pawn_captures[side][square] & position.GetOtherSide(side);
-			GenerateMoves(destinations, move, moves, position, side, promoting);
+			DestinationsMoveGenLoopPawns(destinations, move, moves, position, side, promoting);
             //OINK_TODO: we need to generate EP moves!
         }
 		return moves;
     }
 
-    MoveVector MoveGenerator::GenerateRookMoves(const Position &position, int side)
-    {
-        MoveVector moves;
-		Move move;
-		move.SetPiece(pieces::ROOKS[side]);
-
-        bitboard rooks = position.rooks[side];
-        while (rooks)
-        {
-            int square = GetFirstIndexAndClear(rooks);
+	MoveVector GenerateRankFileSliderMoves(const Position &position, Side side, Move &move, bitboard movingPieceBitboard)
+	{
+		MoveVector moves;
+		while (movingPieceBitboard)
+		{
+			Square square = GetFirstIndexAndClear(movingPieceBitboard);
 			move.SetSource(square);
 
-			int rank, file;
+			RankFile rank, file;
 			IndexToRankAndFile(square, rank, file);
 
 			bitboard rankOccupancy = GetRankOccupancy(position.wholeBoard, rank);
 			bitboard fileOccupancy = GetFileOccupancy(position.wholeBoard, file);
-			bitboard destinations = (moves::rook_horiz_moves[square][rankOccupancy] | 
-									 moves::rook_vert_moves[square][fileOccupancy]) 
+			bitboard destinations = (moves::rook_horiz_moves[square][rankOccupancy] |
+									 moves::rook_vert_moves[square][fileOccupancy])
 									 & ~position.sides[side];
 
-			GenerateMoves(destinations, move, moves, position, side);
-        }
+			DestinationsMoveGenLoop(destinations, move, moves, position, side);
+		}
 		return moves;
+	}
+
+    MoveVector MoveGenerator::GenerateRookMoves(const Position &position, Side side)
+    {
+		Move move;
+		move.SetPiece(pieces::ROOKS[side]);
+		return GenerateRankFileSliderMoves(position, side, move, position.rooks[side]);
     }
 
-    MoveVector MoveGenerator::GenerateBishopMoves(const Position &position, int side)
-    {
-        MoveVector moves;
-		Move move;
-		move.SetPiece(pieces::BISHOPS[side]);
+	MoveVector GenerateDiagonalSliderMoves(const Position &position, Side side, Move &move, bitboard movingPieceBitboard)
+	{
+		MoveVector moves;
 
-        bitboard bishops = position.bishops[side];
-        while (bishops)
-        {
-			int square = GetFirstIndexAndClear(bishops);
+		while (movingPieceBitboard)
+		{
+			Square square = GetFirstIndexAndClear(movingPieceBitboard);
 			move.SetSource(square);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
 			PrintBitboards(ba::list_of(make_pair(position.wholeBoard, "whole board"))
-									  (make_pair(moves::diagMasks_a1h8[square], "diagmasks for square")), square);
+				(make_pair(moves::diagMasks_a1h8[square], "diagmasks for square")), square);
 #endif
 
 			bitboard diagonalOccupancy_a1h8 = GetDiagonalOccupancy_a1h8(position.wholeBoard, square);
 			bitboard diagonalOccupancy_a8h1 = GetDiagonalOccupancy_a8h1(position.wholeBoard, square);
-			bitboard destinations = (moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8] | moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1]) 
-									& ~position.sides[side];
+			bitboard destinations = (moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8] | moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1])
+				& ~position.sides[side];
 
 			assert(diagonalOccupancy_a8h1 < 256);
 			assert(diagonalOccupancy_a1h8 < 256);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
 			PrintBitboards(ba::list_of(make_pair(diagonalOccupancy_a1h8, "diagonalOccupancy_a1h8"))
-							          (make_pair(diagonalOccupancy_a8h1, "diagonalOccupancy_a8h1"))
-									  (make_pair(moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8], "a1h8 moves"))
-									  (make_pair(moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1], "a8h1 moves"))
-									  (make_pair(destinations, "destinations")), square);
+				(make_pair(diagonalOccupancy_a8h1, "diagonalOccupancy_a8h1"))
+				(make_pair(moves::diag_moves_a1h8[square][diagonalOccupancy_a1h8], "a1h8 moves"))
+				(make_pair(moves::diag_moves_a8h1[square][diagonalOccupancy_a8h1], "a8h1 moves"))
+				(make_pair(destinations, "destinations")), square);
 #endif
-			GenerateMoves(destinations, move, moves, position, side);
-        }
+			DestinationsMoveGenLoop(destinations, move, moves, position, side);
+		}
 
 		return moves;
+	}
+
+    MoveVector MoveGenerator::GenerateBishopMoves(const Position &position, Side side)
+    {
+		Move move;
+		move.SetPiece(pieces::BISHOPS[side]);
+		return GenerateDiagonalSliderMoves(position, side, move, position.bishops[side]);
     }
+
+	MoveVector MoveGenerator::GenerateQueenMoves(const Position &position, Side side)
+	{
+		Move rfMove;
+		rfMove.SetPiece(pieces::QUEENS[side]);
+		auto moves = GenerateRankFileSliderMoves(position, side, rfMove, position.queens[side]);
+
+		Move diagMove;
+		diagMove.SetPiece(pieces::QUEENS[side]);
+		auto diagonalMoves = GenerateDiagonalSliderMoves(position, side, diagMove, position.queens[side]);
+
+		moves.insert(moves.end(), diagonalMoves.begin(), diagonalMoves.end());
+		return moves;
+	}
     
 	/*
-	MoveVector MoveGenerator::GenerateAllMoves(const Position &position, int side)
+	MoveVector MoveGenerator::GenerateAllMoves(const Position &position, Side side)
     {
         MoveVector moves = GenerateKingMoves(position, side);
 
