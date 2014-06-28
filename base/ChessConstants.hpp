@@ -2,37 +2,35 @@
 #define CHESSCONSTANTS_HPP
 
 #include "BasicTypes.hpp"
-#include <vector>
 
 namespace chess
 {
-    void InitializeConstants();
+    void constants_initialize();
 
     namespace starting
     {
-        const bitboard white_king	 = 0x0000000000000010; //e1 = bit 4 = 2^4 = 16
-        const bitboard black_king	 = 0x1000000000000000;
-        const bitboard white_rooks	 = 0x0000000000000081;
-        const bitboard black_rooks	 = 0x8100000000000000;
-        const bitboard white_knights = 0x0000000000000042;
-        const bitboard black_knights = 0x4200000000000000;
-        const bitboard white_bishops = 0x00000000000000A4;
-        const bitboard black_bishops = 0xA400000000000000;
-        const bitboard white_queen	 = 0x0000000000000008;
-        const bitboard black_queen	 = 0x0800000000000000;
-        const bitboard white_pawns	 = 0x000000000000FF00;
-        const bitboard black_pawns	 = 0x00FF000000000000;
+        const Bitboard white_king	 = 0x0000000000000010; //e1 = bit 4 = 2^4 = 16
+        const Bitboard black_king	 = 0x1000000000000000;
+        const Bitboard white_rooks	 = 0x0000000000000081;
+        const Bitboard black_rooks	 = 0x8100000000000000;
+        const Bitboard white_knights = 0x0000000000000042;
+        const Bitboard black_knights = 0x4200000000000000;
+        const Bitboard white_bishops = 0x00000000000000A4;
+        const Bitboard black_bishops = 0xA400000000000000;
+        const Bitboard white_queen	 = 0x0000000000000008;
+        const Bitboard black_queen	 = 0x0800000000000000;
+        const Bitboard white_pawns	 = 0x000000000000FF00;
+        const Bitboard black_pawns	 = 0x00FF000000000000;
     }
 
     namespace util
     {
-        const bitboard one  = 0x0000000000000001;
-        const bitboard full = 0xffffffffffffffff;
-        const bitboard nil =  0x0000000000000000;
-        const bitboard fullrank = 0x00000000000000ff;
+        const Bitboard one         = 0x0000000000000001;
+        const Bitboard full        = 0xffffffffffffffff;
+        const Bitboard nil         =  0x0000000000000000;
+        const Bitboard fullrank    = 0x00000000000000ff;
         const Square   NUM_SQUARES = 64;
         const RankFile BOARD_SIZE  = 8;
-		extern bitboard singleBit[BOARD_SIZE];
     }
 
 	namespace ranks
@@ -47,14 +45,25 @@ namespace chess
 		const RankFile eighth  = 7;
 	}
 
+    namespace files
+	{
+		const RankFile a = 0;
+		const RankFile b = 1;
+		const RankFile c = 2;
+		const RankFile d = 3;
+		const RankFile e = 4;
+		const RankFile f = 5;
+		const RankFile g = 6;
+		const RankFile h = 7;
+	}
+
     namespace sides
     {
         const Side white = 0;
         const Side black = 1;
-        //const RankFile my_third_rank[] = {2,6};
-		const RankFile ABOUT_TO_PROMOTE[] = {ranks::seventh, ranks::second};
 
-        //const Side other_side[] = {1,0};
+        const RankFile STARTING_PAWN_RANKS[] = { ranks::second, ranks::seventh };
+		const RankFile ABOUT_TO_PROMOTE[]    = { ranks::seventh, ranks::second };
     }
 
 	namespace pieces
@@ -80,12 +89,12 @@ namespace chess
 		const Piece ROOKS[2]   = { 6, 14 };
 		const Piece QUEENS[2]  = { 7, 15 };
 
-		extern char PieceSymbols[15];
+		extern char symbols[15];
 	}
 
 	namespace squares
 	{
-        const Square NO_SQUARE = -1;
+        const Square NO_SQUARE = 64;
 
 		const Square a1 = 0;
 		const Square b1 = 1;
@@ -162,72 +171,72 @@ namespace chess
 
     namespace squarebits
     {
-        const bitboard a1 = 0x0000000000000001;
-        const bitboard b1 = 0x0000000000000002;
-        const bitboard c1 = 0x0000000000000004;
-        const bitboard d1 = 0x0000000000000008;
-        const bitboard e1 = 0x0000000000000010;
-        const bitboard f1 = 0x0000000000000020;
-        const bitboard g1 = 0x0000000000000040;
-        const bitboard h1 = 0x0000000000000080;
-        const bitboard a2 = 0x0000000000000100;
-        const bitboard b2 = 0x0000000000000200;
-        const bitboard c2 = 0x0000000000000400;
-        const bitboard d2 = 0x0000000000000800;
-        const bitboard e2 = 0x0000000000001000;
-        const bitboard f2 = 0x0000000000002000;
-        const bitboard g2 = 0x0000000000004000;
-        const bitboard h2 = 0x0000000000008000;
-        const bitboard a3 = 0x0000000000010000;
-        const bitboard b3 = 0x0000000000020000;
-        const bitboard c3 = 0x0000000000040000;
-        const bitboard d3 = 0x0000000000080000;
-        const bitboard e3 = 0x0000000000100000;
-        const bitboard f3 = 0x0000000000200000;
-        const bitboard g3 = 0x0000000000400000;
-        const bitboard h3 = 0x0000000000800000;
-        const bitboard a4 = 0x0000000001000000;
-        const bitboard b4 = 0x0000000002000000;
-        const bitboard c4 = 0x0000000004000000;
-        const bitboard d4 = 0x0000000008000000;
-        const bitboard e4 = 0x0000000010000000;
-        const bitboard f4 = 0x0000000020000000;
-        const bitboard g4 = 0x0000000040000000;
-        const bitboard h4 = 0x0000000080000000;
-        const bitboard a5 = 0x0000000100000000;
-        const bitboard b5 = 0x0000000200000000;
-        const bitboard c5 = 0x0000000400000000;
-        const bitboard d5 = 0x0000000800000000;
-        const bitboard e5 = 0x0000001000000000;
-        const bitboard f5 = 0x0000002000000000;
-        const bitboard g5 = 0x0000004000000000;
-        const bitboard h5 = 0x0000008000000000;
-        const bitboard a6 = 0x0000010000000000;
-        const bitboard b6 = 0x0000020000000000;
-        const bitboard c6 = 0x0000040000000000;
-        const bitboard d6 = 0x0000080000000000;
-        const bitboard e6 = 0x0000100000000000;
-        const bitboard f6 = 0x0000200000000000;
-        const bitboard g6 = 0x0000400000000000;
-        const bitboard h6 = 0x0000800000000000;
-        const bitboard a7 = 0x0001000000000000;
-        const bitboard b7 = 0x0002000000000000;
-        const bitboard c7 = 0x0004000000000000;
-        const bitboard d7 = 0x0008000000000000;
-        const bitboard e7 = 0x0010000000000000;
-        const bitboard f7 = 0x0020000000000000;
-        const bitboard g7 = 0x0040000000000000;
-        const bitboard h7 = 0x0080000000000000;
-        const bitboard a8 = 0x0100000000000000;
-        const bitboard b8 = 0x0200000000000000;
-        const bitboard c8 = 0x0400000000000000;
-        const bitboard d8 = 0x0800000000000000;
-        const bitboard e8 = 0x1000000000000000;
-        const bitboard f8 = 0x2000000000000000;
-        const bitboard g8 = 0x4000000000000000;
-        const bitboard h8 = 0x8000000000000000;
+        const Bitboard a1 = 0x0000000000000001;
+        const Bitboard b1 = 0x0000000000000002;
+        const Bitboard c1 = 0x0000000000000004;
+        const Bitboard d1 = 0x0000000000000008;
+        const Bitboard e1 = 0x0000000000000010;
+        const Bitboard f1 = 0x0000000000000020;
+        const Bitboard g1 = 0x0000000000000040;
+        const Bitboard h1 = 0x0000000000000080;
+        const Bitboard a2 = 0x0000000000000100;
+        const Bitboard b2 = 0x0000000000000200;
+        const Bitboard c2 = 0x0000000000000400;
+        const Bitboard d2 = 0x0000000000000800;
+        const Bitboard e2 = 0x0000000000001000;
+        const Bitboard f2 = 0x0000000000002000;
+        const Bitboard g2 = 0x0000000000004000;
+        const Bitboard h2 = 0x0000000000008000;
+        const Bitboard a3 = 0x0000000000010000;
+        const Bitboard b3 = 0x0000000000020000;
+        const Bitboard c3 = 0x0000000000040000;
+        const Bitboard d3 = 0x0000000000080000;
+        const Bitboard e3 = 0x0000000000100000;
+        const Bitboard f3 = 0x0000000000200000;
+        const Bitboard g3 = 0x0000000000400000;
+        const Bitboard h3 = 0x0000000000800000;
+        const Bitboard a4 = 0x0000000001000000;
+        const Bitboard b4 = 0x0000000002000000;
+        const Bitboard c4 = 0x0000000004000000;
+        const Bitboard d4 = 0x0000000008000000;
+        const Bitboard e4 = 0x0000000010000000;
+        const Bitboard f4 = 0x0000000020000000;
+        const Bitboard g4 = 0x0000000040000000;
+        const Bitboard h4 = 0x0000000080000000;
+        const Bitboard a5 = 0x0000000100000000;
+        const Bitboard b5 = 0x0000000200000000;
+        const Bitboard c5 = 0x0000000400000000;
+        const Bitboard d5 = 0x0000000800000000;
+        const Bitboard e5 = 0x0000001000000000;
+        const Bitboard f5 = 0x0000002000000000;
+        const Bitboard g5 = 0x0000004000000000;
+        const Bitboard h5 = 0x0000008000000000;
+        const Bitboard a6 = 0x0000010000000000;
+        const Bitboard b6 = 0x0000020000000000;
+        const Bitboard c6 = 0x0000040000000000;
+        const Bitboard d6 = 0x0000080000000000;
+        const Bitboard e6 = 0x0000100000000000;
+        const Bitboard f6 = 0x0000200000000000;
+        const Bitboard g6 = 0x0000400000000000;
+        const Bitboard h6 = 0x0000800000000000;
+        const Bitboard a7 = 0x0001000000000000;
+        const Bitboard b7 = 0x0002000000000000;
+        const Bitboard c7 = 0x0004000000000000;
+        const Bitboard d7 = 0x0008000000000000;
+        const Bitboard e7 = 0x0010000000000000;
+        const Bitboard f7 = 0x0020000000000000;
+        const Bitboard g7 = 0x0040000000000000;
+        const Bitboard h7 = 0x0080000000000000;
+        const Bitboard a8 = 0x0100000000000000;
+        const Bitboard b8 = 0x0200000000000000;
+        const Bitboard c8 = 0x0400000000000000;
+        const Bitboard d8 = 0x0800000000000000;
+        const Bitboard e8 = 0x1000000000000000;
+        const Bitboard f8 = 0x2000000000000000;
+        const Bitboard g8 = 0x4000000000000000;
+        const Bitboard h8 = 0x8000000000000000;
 
-		const bitboard indexed[util::NUM_SQUARES] =
+		const Bitboard indexed[util::NUM_SQUARES] =
 		{
 			a1, b1, c1, d1, e1, f1, g1, h1,
 			a2, b2, c2, d2, e2, f2, g2, h2,
@@ -242,7 +251,7 @@ namespace chess
 
     namespace moves
     {
-        const bitboard king_moves[util::NUM_SQUARES] = 
+        const Bitboard king_moves[util::NUM_SQUARES] = 
         {
             0x0000000000000302, //a1
             0x0000000000000705,
@@ -310,7 +319,7 @@ namespace chess
             0x40c0000000000000
         };
 
-        const bitboard pawn_moves[2][util::NUM_SQUARES] =
+        const Bitboard pawn_moves[2][util::NUM_SQUARES] =
         {
             { //white
                 0x0000000000000100,                                                                               
@@ -446,7 +455,7 @@ namespace chess
             }
         };
 
-        const bitboard pawn_captures[2][util::NUM_SQUARES] =
+        const Bitboard pawn_captures[2][util::NUM_SQUARES] =
         {
             {
                 0x0000000000000200,                                                                               
@@ -581,19 +590,24 @@ namespace chess
                 0x0040000000000000
             }
         };
-
         
-		extern bitboard file_masks[util::BOARD_SIZE];
-        extern bitboard rank_masks[util::BOARD_SIZE];
-		extern bitboard diagMasks_a1h8[util::NUM_SQUARES];
-        extern bitboard diagMasks_a8h1[util::NUM_SQUARES];
-		extern bitboard knight_moves[util::NUM_SQUARES];
-        extern bitboard rook_horiz_moves[util::NUM_SQUARES][256];
-        extern bitboard rook_vert_moves[util::NUM_SQUARES][256];
-        extern bitboard diag_moves_a1h8[util::NUM_SQUARES][256];
-		extern bitboard diag_moves_a8h1[util::NUM_SQUARES][256];
+		extern Bitboard file_masks[util::BOARD_SIZE];
+        extern Bitboard rank_masks[util::BOARD_SIZE];
+		extern Bitboard diag_masks_a1h8[util::NUM_SQUARES];
+        extern Bitboard diag_masks_a8h1[util::NUM_SQUARES];
+		extern Bitboard knight_moves[util::NUM_SQUARES];
+        extern Bitboard rook_horiz_moves[util::NUM_SQUARES][256];
+        extern Bitboard rook_vert_moves[util::NUM_SQUARES][256];
+        extern Bitboard diag_moves_a1h8[util::NUM_SQUARES][256];
+		extern Bitboard diag_moves_a8h1[util::NUM_SQUARES][256];
 
-        /*const bitboard right_of[util::NUM_SQUARES] =
+        // in order to quickly disallow castling through stuff.
+        const Bitboard white_kingside_castling_mask  = 0x0000000000000060;
+        const Bitboard white_queenside_castling_mask = 0x000000000000000e;
+        const Bitboard black_kingside_castling_mask  = 0x6000000000000000;
+        const Bitboard black_queenside_castling_mask = 0x0e00000000000000;
+        
+        /*const Bitboard right_of[util::NUM_SQUARES] =
         {
         0x00000000000000fe,                                                 
         0x00000000000000fc,                                                 
@@ -661,7 +675,7 @@ namespace chess
         0x0000000000000000
         };*/
 
-        /*const bitboard left_of[util::NUM_SQUARES] =
+        /*const Bitboard left_of[util::NUM_SQUARES] =
         {
         0x0000000000000000,                                                          
         0x0000000000000001,                                                          
@@ -729,7 +743,7 @@ namespace chess
         0x0000000000000000,
         };
 
-        const bitboard up_from[util::NUM_SQUARES] =
+        const Bitboard up_from[util::NUM_SQUARES] =
         {
         0x0101010101010100,                          
         0x0202020202020200,                          
@@ -797,7 +811,7 @@ namespace chess
         0x0000000000000000
         };
 
-        const bitboard down_from[util::NUM_SQUARES] =
+        const Bitboard down_from[util::NUM_SQUARES] =
         {
         0x0000000000000000,                          
         0x0000000000000000,                          

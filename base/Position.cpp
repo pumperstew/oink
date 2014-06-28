@@ -5,7 +5,7 @@ namespace chess
 	Position::Position()
 	{}
 
-	void Position::Clear()
+	void Position::clear()
 	{
 		kings[sides::white]   = kings[sides::black]   = 
 		rooks[sides::white]   = rooks[sides::black]   =
@@ -14,12 +14,14 @@ namespace chess
 		queens[sides::white]  = queens[sides::black]  = 
 		pawns[sides::white]   = pawns[sides::black]	  = util::nil;
 
-		UpdateSides();
+        ep_target_square = 0;
 
-		std::fill(squares, squares + sizeof(squares)/sizeof(squares[0]), pieces::NONE);
+		update_sides();
+
+		memset(squares, pieces::NONE, sizeof(squares));
 	}
 
-	void Position::SetupStarting()
+	void Position::setup_starting_position()
 	{
 		kings[sides::white]   = starting::white_king;
 		kings[sides::black]   = starting::black_king;
@@ -34,7 +36,7 @@ namespace chess
 		pawns[sides::white]   = starting::white_pawns;
 		pawns[sides::black]   = starting::black_pawns;
 
-		UpdateSides();
+		update_sides();
 
 		squares[squares::a1] = pieces::WHITE_ROOK;
 		squares[squares::b1] = pieces::WHITE_KNIGHT;
@@ -109,7 +111,7 @@ namespace chess
 		squares[squares::h8] = pieces::BLACK_ROOK;
 	}
 	
-	bitboard Position::GenerateSide(int side) const
+	Bitboard Position::generate_side(Side side) const
     {
         return kings[side]	 | 
 			   rooks[side]   | 
@@ -119,68 +121,38 @@ namespace chess
 			   pawns[side];
     }
 
-	void Position::UpdateSides()
+	void Position::update_sides()
 	{
-		sides[sides::white] = GenerateSide(sides::white);
-		sides[sides::black] = GenerateSide(sides::black);
-		wholeBoard = sides[sides::white] | sides[sides::black];
-	}
-
-	char Position::GetPieceSymbolAtIndex(Square index) const 
-	{
-		bitboard b = util::one << index;
-		if (b & kings[sides::white])
-			return 'K';
-		else if (b & kings[sides::black])
-			return 'k';
-		else if (b & rooks[sides::white])
-			return 'R';
-		else if (b & rooks[sides::black])
-			return 'r';
-		else if (b & knights[sides::white])
-			return 'N';
-		else if (b & knights[sides::black])
-			return 'n';
-		else if (b & bishops[sides::white])
-			return 'B';
-		else if (b & bishops[sides::black])
-			return 'b';
-		else if (b & queens[sides::white])
-			return 'Q';
-		else if (b & queens[sides::black])
-			return 'q';
-		else if (b & pawns[sides::white])
-			return 'P';
-		else if (b & pawns[sides::black])
-			return 'p';
-		else
-			return 'O';
+		sides[sides::white] = generate_side(sides::white);
+		sides[sides::black] = generate_side(sides::black);
+		whole_board = sides[sides::white] | sides[sides::black];
 	}
 
 	//OINK_TODO: this kinda sucks.
-	void Position::RemoveCaptured(int sideCapturing, bitboard diff) 
+	void Position::remove_captured(Side side_capturing, Bitboard diff) 
     {
-        int s = sideCapturing ^ 1;
+        Side s = side_capturing ^ 1;
         pawns[s]   &= ~diff;
         rooks[s]   &= ~diff;
         knights[s] &= ~diff;
         queens[s]  &= ~diff;
         bishops[s] &= ~diff;
         kings[s]   &= ~diff;
-		UpdateSides();
+
+		update_sides();
     }
 
 	/*
 	void Position::test_rot45()
 	{
-		//generate rot45 bitboards
+		//generate rot45 Bitboards
 		all_rot45_a1h8 = 0;
-		bitboard shift_bottom = 0;
+		Bitboard shift_bottom = 0;
 		for (int i = 0; i < util::BOARD_SIZE; ++i) { //files/ranks
-			bitboard all_shifted_bottom = (wholeBoard & moves::diag_masks_a1h8[i]) >> i;
-			bitboard all_shifted_left = 0, this_diag_left = 0;
+			Bitboard all_shifted_bottom = (wholeBoard & moves::diag_masks_a1h8[i]) >> i;
+			Bitboard all_shifted_left = 0, this_diag_left = 0;
 
-			bitboard this_diag_bottom = //the diags starting from the bottom of the board
+			Bitboard this_diag_bottom = //the diags starting from the bottom of the board
 				(all_shifted_bottom | (all_shifted_bottom >> 8) | (all_shifted_bottom >> 16)
 				| (all_shifted_bottom >> 24) | (all_shifted_bottom >> 32) 
 				| (all_shifted_bottom >> 40) | (all_shifted_bottom >> 48)
@@ -197,20 +169,20 @@ namespace chess
 				all_rot45_a1h8 |= (this_diag_left << (shift_bottom + 28));
 			}
 			if (i == 1) {
-				//chess::print_bitboard(moves::diag_masks_a1h8[i]);
-				//chess::print_bitboard(all_shifted_bottom);
-				//chess::print_bitboard(all_shifted_left);
-				//chess::print_bitboard(this_diag_bottom);
-				//chess::print_bitboard(this_diag_left);
+				//chess::print_Bitboard(moves::diag_masks_a1h8[i]);
+				//chess::print_Bitboard(all_shifted_bottom);
+				//chess::print_Bitboard(all_shifted_left);
+				//chess::print_Bitboard(this_diag_bottom);
+				//chess::print_Bitboard(this_diag_left);
 			}
 			shift_bottom += util::BOARD_SIZE - i;
 		}
-		//chess::print_bitboard(all_rot45_a1h8);
+		//chess::print_Bitboard(all_rot45_a1h8);
 	}
-	//ok, so we can generate rot45 bitboards, but doing all the above (and again for a8h1!!)
+	//ok, so we can generate rot45 Bitboards, but doing all the above (and again for a8h1!!)
 	//every time a piece moves (i.e. everytime u gen a new pos) is gonna be horrible.
 	//=> we need to use the idea from crafty, i.e. when you move something, update all
-	//bitboards incrementally (so you make move() a method of board, with probably special
+	//Bitboards incrementally (so you make move() a method of board, with probably special
 	//cases for captures, etc).
 	//of course if it's very inconvenient to do incremental update in a particular case,
 	//you can do a full generate. otherwise, the full rot45 gen would only be called at startup..

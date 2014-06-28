@@ -24,9 +24,9 @@ message("${GTEST_LIBRARY_DIR}")
 ##########################################################################################
 ###################################### Boost #############################################
 
-set(BOOST_ROOT "C:/code/libraries/boost")
-find_package(Boost 1.52.0 REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+# set(BOOST_ROOT "C:/code/libraries/boost")
+# find_package(Boost 1.52.0 REQUIRED)
+# include_directories(${Boost_INCLUDE_DIRS})
 
 ##########################################################################################
 

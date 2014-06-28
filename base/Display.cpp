@@ -1,92 +1,84 @@
 #include "Display.hpp"
-#include "ChessConstants.hpp"
+#include "Position.hpp"
 #include "BasicOperations.hpp"
 
 #include <cstdio>
+
 #include <Windows.h>
 
-#include <boost/assign.hpp>
-
 using namespace std;
-namespace ba = boost::assign;
 
 namespace chess
 {
-	void PrintPosition(const Position &position)
+	void print_position(const Position &position)
 	{
-		printf("\n");
-		for (RankFile rank = 7; rank >= 0; --rank)
+        puts("");
+
+        char this_rank_buf[util::BOARD_SIZE + 1];
+		for (RankFile rank = util::BOARD_SIZE - 1; rank >= 0; --rank)
 		{
-			for (RankFile file = 0; file < 8; ++file)
+			for (RankFile file = 0; file < util::BOARD_SIZE; ++file)
 			{
-				printf("%c ", pieces::PieceSymbols[position.GetSquare(RankFileToIndex(rank, file))]);
+                Piece what = position.squares[rank_file_to_square(rank, file)];
+                this_rank_buf[file] = pieces::symbols[what];
 			}
-			printf("\n");
+            this_rank_buf[util::BOARD_SIZE] = 0;
+			puts(this_rank_buf);
 		}
 	}
 
-	//void print_boards(const position_list &brds)
-	//{
-	//	printf("printing %d positions:\n", brds.size());
-	//	for (int r = 7; r >= 0; --r) {
-	//		for (position_list::const_iterator b = brds.begin(); b != brds.end(); ++b) {
-	//			for (int c = 0; c < 8; ++c) {
-	//				printf("%c ", b->get_at(r,c));
-	//			}
-	//			printf(" ");
-	//		}
-	//		printf("\n");
-	//	}
-	//}
-
-	namespace ConsoleColours
+	namespace console_colours
 	{
 		enum Values 
 		{ 
 			DBLUE=1,GREEN,GREY,DRED,DPURP,BROWN,LGREY,DGREY,BLUE,LIMEG,TEAL,RED,PURPLE,YELLOW,WHITE,B_B 
 		};
 	}
-//#define DISPLAY_DISABLED
-	void PrintBitboards(const vector<pair<bitboard, string>> &bitboards, Square highlightSquare)
+
+	void print_bitboards(const vector<pair<Bitboard, string>> &boards, Square highlight_square)
 	{
 #ifndef DISPLAY_DISABLED
-		auto stdOutHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		HANDLE std_out_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 
 		vector<string> offsets;
 		printf("\n");
-		for (size_t i = 0; i < bitboards.size(); ++i)
+		for (size_t i = 0; i < boards.size(); ++i)
 		{
-			int padLength = 0, titlePadLength = 0;
-			if (bitboards[i].second.size() < 16) 
-				titlePadLength = 16 - bitboards[i].second.size() + 1;
+			int pad_length = 0, title_pad_length = 0;
+			if (boards[i].second.size() < 16)
+            {
+				title_pad_length = 16 - (int)boards[i].second.size() + 1;
+            }
 			else 
-				padLength = bitboards[i].second.size() - 16 + 1;
+            {
+				pad_length = (int)boards[i].second.size() - 16 + 1;
+            }
 
-			string titlePad(max(titlePadLength, 1), ' ');
-			string pad(max(padLength, 1), ' ');
+			string title_pad(max(title_pad_length, 1), ' ');
+			string pad(max(pad_length, 1), ' ');
 			offsets.push_back(pad);
-			printf("%s%s", bitboards[i].second.c_str(), titlePad.c_str());
+			printf("%s%s", boards[i].second.c_str(), title_pad.c_str());
 		}
 		printf("\n");
 
-		for (RankFile rank = 7; rank >= 0; --rank)
+		for (RankFile rank = util::BOARD_SIZE - 1; rank >= 0; --rank)
 		{
-			for (size_t j = 0; j < bitboards.size(); ++j)
+			for (size_t j = 0; j < boards.size(); ++j)
 			{
 				for (RankFile file = 0; file < util::BOARD_SIZE; ++file)
 				{
-					Square index = RankFileToIndex(rank, file);
-					auto value = (bitboards[j].first >> index) & util::one;
-					if (index == highlightSquare)
+					Square index = rank_file_to_square(rank, file);
+					Bitboard value = (boards[j].first >> index) & util::one;
+					if (index == highlight_square)
 					{
-						::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::RED);
+						::SetConsoleTextAttribute(std_out_handle, console_colours::RED);
 					} 
 					else if (value)
 					{
-						::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::BLUE);
+						::SetConsoleTextAttribute(std_out_handle, console_colours::BLUE);
 					}
 					printf("%d ", (int)value);
-					::SetConsoleTextAttribute(stdOutHandle, ConsoleColours::LGREY);
+					::SetConsoleTextAttribute(std_out_handle, console_colours::LGREY);
 				}
 				printf("%s", offsets[j].c_str());
 			}
@@ -95,24 +87,19 @@ namespace chess
 #endif
 	}
 	
-	void PrintBitboard(bitboard board, const char* title, Square highlightSquare)
+	void print_bitboard(Bitboard board, const char* title, Square highlight_square)
 	{
-		vector<pair<bitboard, string>> bitboards = ba::list_of(make_pair(board, title));
-		PrintBitboards(bitboards, highlightSquare);
+		vector<pair<Bitboard, string>> bitboards(1, make_pair(board, title ? title : ""));
+		print_bitboards(bitboards, highlight_square);
 	}
 
-	/*char file2letter[8] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+    void print_bitboard(const Bitboard b, const char* title)
+    {
+        print_bitboard(b, title, squares::NO_SQUARE);
+    }
 
-	std::ostream& print_square::operator()(std::ostream &stream) const
-	{
-		int rank = 1 + sq / 8;
-		int file = sq % 8;
-		stream << file2letter[file] << rank;
-		return stream;
-	}
-
-	std::ostream& operator<<(std::ostream &stream, const print_square &sqp)
-	{
-		return sqp(stream);
-	}*/
+    void print_bitboard(const Bitboard b, Square highlight_square)
+    {
+        print_bitboard(b, nullptr, highlight_square);
+    }
 }

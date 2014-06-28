@@ -8,7 +8,6 @@ set(BASE_SRC
 	Position.hpp
 	Position.cpp
 	Move.hpp
-	Move.cpp
 	MoveGenerator.hpp
 	MoveGenerator.cpp
 	Display.hpp

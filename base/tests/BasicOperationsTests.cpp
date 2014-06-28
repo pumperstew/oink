@@ -5,15 +5,15 @@
 using namespace chess;
 using namespace std;
 
-namespace { //internal linkage
+namespace { // internal only
 
 struct BoardIndexRank
 {
-	bitboard board;
+	Bitboard board;
 	Square	 index;
-	bitboard rankOccupancy;
+	Bitboard rankOccupancy;
 
-	BoardIndexRank(bitboard board_, Square index_, bitboard rankOccupancy_)
+	BoardIndexRank(Bitboard board_, Square index_, Bitboard rankOccupancy_)
 		: board(board_), index(index_), rankOccupancy(rankOccupancy_)
 	{}
 };
@@ -24,10 +24,10 @@ struct GenerateSquares
 	{
 		vector<BoardIndexRank> allSquares;
 		allSquares.reserve(util::NUM_SQUARES);
-		bitboard square = util::one;
+		Bitboard square = util::one;
 		for (Square i = 0; i < util::NUM_SQUARES; ++i)
 		{
-			bitboard rankOccupancy = square >> (IndexToRank(i) << 3);
+			Bitboard rankOccupancy = square >> (square_to_rank(i) << 3);
 			allSquares.push_back(BoardIndexRank(square, i, rankOccupancy));
 			square <<= util::one;
 		}
@@ -40,22 +40,23 @@ class BitwiseOpsTests : public ::testing::TestWithParam<BoardIndexRank>
 protected:
 	virtual void SetUp()
 	{
-		InitializeConstants();
+		constants_initialize();
 	}
 };
 
-TEST_P(BitwiseOpsTests, SinglePieceBitboardToIndex_ReturnsExpectedIndices)
+TEST_P(BitwiseOpsTests, get_and_clear_first_occ_square_WorksWith_SingleSquareSetOnInitialBoard)
 {
-	ASSERT_EQ(GetParam().index, SinglePieceBitboardToIndex(GetParam().board));
+	Bitboard board = GetParam().board;
+	Square index;
+	board = get_and_clear_first_occ_square(board, &index);
+	ASSERT_EQ(util::nil, board);
+	ASSERT_EQ(GetParam().index, index);
 }
 
-TEST_P(BitwiseOpsTests, GetAndClearFirstSetBitReturningIndex_WorksWith_SingleSquareSetOnInitialBoard)
+TEST_P(BitwiseOpsTests, get_first_occ_square_WorksWith_SingleSquareSetOnInitialBoard)
 {
-	bitboard board = GetParam().board;
-	Square index;
-	bitboard result = GetAndClearFirstSetBitReturningIndex(board, index);
-	ASSERT_EQ(GetParam().board, result);
-	ASSERT_EQ(util::nil, board);
+	Bitboard board = GetParam().board;
+    Square index = get_first_occ_square(board);
 	ASSERT_EQ(GetParam().index, index);
 }
 

@@ -12,14 +12,14 @@ class PositionTests : public ::testing::Test
 protected:
 	virtual void SetUp()
 	{
-		InitializeConstants();
+		constants_initialize();
 	}
 };
 
 TEST_F(PositionTests, TestThat_SetupStarting_CreatesExpectedPosition)
 {
 	Position position;
-	position.SetupStarting();
+	position.setup_starting_position();
 	
 	ASSERT_EQ(starting::white_king, position.kings[sides::white]);
 	ASSERT_EQ(starting::black_king, position.kings[sides::black]);
@@ -37,62 +37,62 @@ TEST_F(PositionTests, TestThat_SetupStarting_CreatesExpectedPosition)
 			  starting::black_rooks   |
 			  starting::black_pawns, position.sides[sides::black]);
 
-	ASSERT_EQ(position.sides[sides::black] | position.sides[sides::white], position.wholeBoard);
+	ASSERT_EQ(position.sides[sides::black] | position.sides[sides::white], position.whole_board);
 
-	PrintPosition(position);
+	print_position(position);
 }
 	
 TEST_F(PositionTests, TestThat_Clear_DoesClear)
 {
 	Position position;
-	position.Clear();
+	position.clear();
 	
-	ASSERT_EQ(util::nil, position.wholeBoard);
+	ASSERT_EQ(util::nil, position.whole_board);
 }
 
-TEST_F(PositionTests, TestThat_GetEmptySquares_ReturnsFullBoardForClearBoard)
+TEST_F(PositionTests, TestThat_get_empty_squares_ReturnsFullBoardForClearBoard)
 {
 	Position position;
-	position.Clear();
+	position.clear();
 	
-	ASSERT_EQ(util::full, position.GetEmptySquares());
+	ASSERT_EQ(util::full, position.get_empty_squares());
 }
 
-TEST_F(PositionTests, TestThat_RemoveCaptured_IsNoOpWhenDiffBitBoardIsEmpty)
+TEST_F(PositionTests, TestThat_RemoveCaptured_IsNoOpWhenDiffBitboardIsEmpty)
 {
 	Position position;
-	position.SetupStarting();
+	position.setup_starting_position();
 
-	bitboard before = position.wholeBoard;
-	position.RemoveCaptured(sides::white, util::nil);
+	Bitboard before = position.whole_board;
+	position.remove_captured(sides::white, util::nil);
 
-	ASSERT_EQ(before, position.wholeBoard);
+	ASSERT_EQ(before, position.whole_board);
 }
 
 TEST_F(PositionTests, TestThat_RemoveCaptured_WorksWithSinglePieceDiff)
 {
 	Position position;
-	position.SetupStarting();
+	position.setup_starting_position();
 
-	bitboard before = position.wholeBoard;
-	bitboard diff = starting::white_queen;
-	position.RemoveCaptured(sides::black, diff);
+	Bitboard before = position.whole_board;
+	Bitboard diff = starting::white_queen;
+	position.remove_captured(sides::black, diff);
 
-	bitboard expected = before & ~starting::white_queen;
-	ASSERT_EQ(expected, position.wholeBoard);
+	Bitboard expected = before & ~starting::white_queen;
+	ASSERT_EQ(expected, position.whole_board);
 }
 
 TEST_F(PositionTests, TestThat_RemoveCaptured_WorksWithMultiPieceDiff)
 {
 	Position position;
-	position.SetupStarting();
+	position.setup_starting_position();
 
-	bitboard before = position.wholeBoard;
-	bitboard diff = starting::white_rooks;
-	position.RemoveCaptured(sides::black, diff);
+	Bitboard before = position.whole_board;
+	Bitboard diff = starting::white_rooks;
+	position.remove_captured(sides::black, diff);
 
-	bitboard expected = before & ~starting::white_rooks;
-	ASSERT_EQ(expected, position.wholeBoard);
+	Bitboard expected = before & ~starting::white_rooks;
+	ASSERT_EQ(expected, position.whole_board);
 }
 
 }
