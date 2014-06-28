@@ -14,8 +14,7 @@ namespace
 class MoveGeneratorTests : public ::testing::Test
 {
 protected:
-	Position	   position;
-	MoveGenerator  generator;
+	Position position;
 
 	virtual void SetUp()
 	{
@@ -27,7 +26,7 @@ protected:
 TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThereAreNoKnights)
 {
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 	ASSERT_TRUE(moves.empty());
 }
 
@@ -37,7 +36,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThe
 	position.update_sides();
 
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 
 	ASSERT_TRUE(moves.empty());
 }
@@ -148,7 +147,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	SetWhiteKnightAt(position, a8);
 
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
     CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KNIGHT, pieces::NONE, { c7, b6 });
@@ -160,7 +159,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	SetWhiteKnightAt(position, e5);
 
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 
 	ASSERT_EQ(8, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KNIGHT, pieces::NONE,
@@ -173,7 +172,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	SetWhiteKnightAt(position, squares::g3);
 
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 
 	ASSERT_EQ(6, moves.size());
 	CheckMovesDestinationVarying(moves, squares::g3, pieces::WHITE_KNIGHT, pieces::NONE,
@@ -187,7 +186,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::c7);
 
     MoveVector moves;
-	generator.GenerateKnightMoves(moves, position, sides::white);
+	generate_knight_moves(moves, position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
 	CheckMoveIsInList(moves, squares::a8, squares::c7, pieces::WHITE_KNIGHT, pieces::BLACK_PAWN);
@@ -207,7 +206,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	SetWhiteKingAt(position, squares::a8);
 
     MoveVector moves;
-	generator.GenerateKingMoves(moves, position, sides::white);
+	generate_king_moves(moves, position, sides::white);
 
 	ASSERT_EQ(3, moves.size());
     CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KING, pieces::NONE, { b8, b7, a7 });
@@ -218,7 +217,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 	SetWhiteKingAt(position, squares::e5);
 
     MoveVector moves;
-	generator.GenerateKingMoves(moves, position, sides::white);
+	generate_king_moves(moves, position, sides::white);
 
 	ASSERT_EQ(8, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KING, pieces::NONE,
@@ -233,7 +232,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForW
     SetWhiteRookAt(position, squares::h1);
 
     MoveVector moves;
-	generator.GenerateKingMoves(moves, position, sides::white);
+	generate_king_moves(moves, position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e1, pieces::WHITE_KING, pieces::NONE, { d1, d2, e2, f2, f1 });
@@ -251,7 +250,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForB
     SetBlackRookAt(position, squares::h8);
 
     MoveVector moves;
-	generator.GenerateKingMoves(moves, position, sides::black);
+	generate_king_moves(moves, position, sides::black);
 
 	ASSERT_EQ(7, moves.size());
     CheckMovesDestinationVarying(moves, squares::e8, pieces::BLACK_KING, pieces::NONE, { d8, d7, e7, f7, f8 });
@@ -273,7 +272,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetWhitePawnAt(position, squares::e2);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
     CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3, e4 });
@@ -284,7 +283,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetWhitePawnAt(position, squares::e3);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(1, moves.size());
 	CheckMoveIsInList(moves, squares::e3, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
@@ -297,7 +296,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetBlackPawnAt(position, squares::e3);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(0, moves.size());
 }
@@ -309,7 +308,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetWhiteBishopAt(position, squares::e3);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(0, moves.size());
 }
@@ -320,7 +319,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetBlackPawnAt(position, squares::e4);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(1, moves.size());
     CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3 });
@@ -332,7 +331,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetWhiteBishopAt(position, squares::e4);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(1, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3 });
@@ -344,7 +343,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetBlackPawnAt(position, squares::f3);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(3, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3, e4 });
@@ -358,7 +357,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetBlackPawnAt(position, squares::d3);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(4, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE,		 { e3, e4 });
@@ -370,7 +369,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetWhitePawnAt(position, squares::c7);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(4, moves.size());
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_QUEEN);
@@ -385,7 +384,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
 	SetBlackBishopAt(position, squares::b8);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(8, moves.size());
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_QUEEN);
@@ -407,7 +406,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesEnPassantMovesFor
     position.ep_target_square = squares::f6;
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::white);
+	generate_pawn_moves(moves, position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
     CheckMoveIsInList(moves, squares::e5, squares::e6, pieces::WHITE_PAWN, pieces::NONE,       pieces::NONE, pieces::NONE, pieces::NONE);
@@ -422,7 +421,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesEnPassantMovesFor
     position.ep_target_square = squares::b3;
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::black);
+	generate_pawn_moves(moves, position, sides::black);
 
 	ASSERT_EQ(2, moves.size());
     CheckMoveIsInList(moves, squares::a4, squares::a3, pieces::BLACK_PAWN, pieces::NONE,       pieces::NONE, pieces::NONE, pieces::NONE);
@@ -435,7 +434,7 @@ TEST_F(MoveGeneratorTests, TestThat_PawnCapturesAreNotGeneratedAcrossBoardEdges)
 	SetBlackPawnAt(position, squares::a4);
 
     MoveVector moves;
-	generator.GeneratePawnMoves(moves, position, sides::black);
+	generate_pawn_moves(moves, position, sides::black);
 
 	ASSERT_EQ(1, moves.size());
     CheckMoveIsInList(moves, squares::a4, squares::a3, pieces::BLACK_PAWN, pieces::NONE);
@@ -454,7 +453,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetWhiteRookAt(position, squares::a8);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
@@ -466,7 +465,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetWhiteRookAt(position, squares::e5);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_ROOK, pieces::NONE,
@@ -478,7 +477,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetWhiteRookAt(position, squares::h1);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_ROOK, pieces::NONE,
@@ -491,7 +490,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetBlackPawnAt(position, squares::a3);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
@@ -506,7 +505,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetBlackBishopAt(position, squares::a1);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(14, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
@@ -521,7 +520,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
 	SetWhiteKingAt(position, squares::a3);
 
     MoveVector moves;
-	generator.GenerateRookMoves(moves, position, sides::white);
+	generate_rook_moves(moves, position, sides::white);
 
 	ASSERT_EQ(11, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
@@ -542,7 +541,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::a1);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_BISHOP, pieces::NONE,
@@ -555,7 +554,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::h8);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
 	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_BISHOP, pieces::NONE,
@@ -568,7 +567,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::a8);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_BISHOP, pieces::NONE,
@@ -581,7 +580,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::h1);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(7, moves.size());
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_BISHOP, pieces::NONE,
@@ -594,7 +593,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::b2);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(9, moves.size());
 	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_BISHOP, pieces::NONE,
@@ -607,7 +606,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::g7);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(9, moves.size());
 	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_BISHOP, pieces::NONE,
@@ -620,7 +619,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::b7);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(9, moves.size());
 	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_BISHOP, pieces::NONE,
@@ -633,7 +632,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::g2);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(9, moves.size());
 	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_BISHOP, pieces::NONE,
@@ -646,7 +645,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::e5);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -659,7 +658,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::e4);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_BISHOP, pieces::NONE,
@@ -672,7 +671,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::d4);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
 	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_BISHOP, pieces::NONE,
@@ -685,7 +684,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetWhiteBishopAt(position, squares::d5);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
 	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -699,7 +698,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::b2);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -715,7 +714,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::c7);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(12, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -731,7 +730,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::f4);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(11, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -747,7 +746,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::f6);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(11, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -763,7 +762,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::c3);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(2, moves.size());
 	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
@@ -776,7 +775,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::b3);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(10, moves.size());
 	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_BISHOP, pieces::NONE,
@@ -792,7 +791,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
 	SetBlackPawnAt(position, squares::f3);
 
     MoveVector moves;
-	generator.GenerateBishopMoves(moves, position, sides::white);
+	generate_bishop_moves(moves, position, sides::white);
 
 	ASSERT_EQ(13, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
@@ -813,7 +812,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::a1);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(21, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
@@ -826,7 +825,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::h8);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(21, moves.size());
 	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_QUEEN, pieces::NONE,
@@ -839,7 +838,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::a8);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(21, moves.size());
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_QUEEN, pieces::NONE,
@@ -852,7 +851,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::h1);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(21, moves.size());
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_QUEEN, pieces::NONE,
@@ -865,7 +864,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::b2);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(23, moves.size());
 	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_QUEEN, pieces::NONE,
@@ -878,7 +877,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::g7);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(23, moves.size());
 	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_QUEEN, pieces::NONE,
@@ -891,7 +890,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::b7);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(23, moves.size());
 	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_QUEEN, pieces::NONE,
@@ -904,7 +903,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::g2);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(23, moves.size());
 	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_QUEEN, pieces::NONE,
@@ -917,7 +916,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::e5);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(27, moves.size());
     CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -930,7 +929,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::e4);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(27, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_QUEEN, pieces::NONE,
@@ -943,7 +942,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::d4);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(27, moves.size());
 	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_QUEEN, pieces::NONE,
@@ -956,7 +955,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetWhiteQueenAt(position, squares::d5);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(27, moves.size());
 	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -970,7 +969,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::b2);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(26, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -986,7 +985,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::c7);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(26, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1002,7 +1001,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::f4);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(25, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1018,7 +1017,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::f6);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(25, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1034,7 +1033,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::c3);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(16, moves.size());
     CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1050,7 +1049,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::b3);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(24, moves.size());
 	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1066,7 +1065,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
 	SetBlackPawnAt(position, squares::f3);
 
     MoveVector moves;
-	generator.GenerateQueenMoves(moves, position, sides::white);
+	generate_queen_moves(moves, position, sides::white);
 
 	ASSERT_EQ(27, moves.size());
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
@@ -1077,7 +1076,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateAllMoves_WorksForStartingPosition)
 {
     position.setup_starting_position();
 
-	auto moves = generator.GenerateAllMoves(position, sides::white);
+	auto moves = generate_all_moves(position, sides::white);
 
 	ASSERT_EQ(20, moves.size());
     CheckMovesDestinationVarying(moves, squares::a2, pieces::WHITE_PAWN, pieces::NONE, { a3, a4 });

@@ -1,5 +1,5 @@
 
-set(BASE_SRC
+set(ENGINE_SRC
 	BasicTypes.hpp
 	ChessConstants.hpp
 	ChessConstants.cpp
@@ -14,6 +14,6 @@ set(BASE_SRC
 	Display.cpp
 )
 	
-add_library(base ${BASE_SRC})
+add_library(engine ${ENGINE_SRC})
 
 add_subdirectory(tests)
