@@ -14,15 +14,17 @@ namespace chess
 	{
         puts("");
 
-        char this_rank_buf[util::BOARD_SIZE + 1];
+        char this_rank_buf[(util::BOARD_SIZE << 1) + 1];
+        memset(this_rank_buf, ' ', sizeof(this_rank_buf));
+
 		for (RankFile rank = util::BOARD_SIZE - 1; rank >= 0; --rank)
 		{
 			for (RankFile file = 0; file < util::BOARD_SIZE; ++file)
 			{
                 Piece what = position.squares[rank_file_to_square(rank, file)];
-                this_rank_buf[file] = pieces::symbols[what];
+                this_rank_buf[file << 1] = pieces::symbols[what];
 			}
-            this_rank_buf[util::BOARD_SIZE] = 0;
+            this_rank_buf[util::BOARD_SIZE << 1] = 0;
 			puts(this_rank_buf);
 		}
 	}
@@ -101,5 +103,59 @@ namespace chess
     void print_bitboard(const Bitboard b, Square highlight_square)
     {
         print_bitboard(b, nullptr, highlight_square);
+    }
+
+    void print_move(Move move, int move_num)
+    {
+        printf("\n%d. ", move_num);
+
+        if (move.get_castling() != pieces::NONE)
+        {
+            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
+            {
+                puts("O-O-O");
+            }
+            else
+            {
+                puts("O-O");
+            }
+            return;
+
+        }
+
+        string algebraic;
+
+        Piece moving_piece = move.get_piece();
+        if (moving_piece != pieces::WHITE_PAWN && moving_piece != pieces::BLACK_PAWN)
+        {
+            algebraic = pieces::symbols[moving_piece];
+        }
+
+        Square source = move.get_source();
+        RankFile rank, file;
+        square_to_rank_file(source, rank, file);
+
+        algebraic += 'a' + file;
+        algebraic += '1' + rank;
+
+        algebraic += move.get_captured_piece() != pieces::NONE ? "x" : "-";
+
+        Square dest = move.get_destination();
+        square_to_rank_file(dest, rank, file);
+
+        algebraic += 'a' + file;
+        algebraic += '1' + rank;
+
+        if (move.get_en_passant() != pieces::NONE)
+        {
+            algebraic += "ep";
+        }
+        else if (move.get_promotion_piece() != pieces::NONE)
+        {
+            algebraic += "=";
+            algebraic += pieces::symbols[move.get_promotion_piece()];
+        }
+
+        puts(algebraic.c_str());
     }
 }

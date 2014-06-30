@@ -3,6 +3,7 @@
 
 #include "BasicTypes.hpp"
 #include "ChessConstants.hpp"
+#include "Move.hpp"
 
 #include <vector>
 #include <utility>
@@ -19,6 +20,8 @@ namespace chess
     void print_bitboard(const Bitboard bitboard, const char* title, Square highlight_square);
 
 	void print_bitboards(const std::vector<std::pair<Bitboard, std::string>> &bitboards, Square highlight_square = squares::NO_SQUARE);
+
+    void print_move(Move move, int move_num);
 }
 
 #endif

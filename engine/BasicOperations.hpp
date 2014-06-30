@@ -13,6 +13,17 @@ namespace chess
 	Bitboard project_occupancy_from_a1h8(Bitboard b, Square square);
 	Bitboard project_occupancy_from_a8h1(Bitboard b, Square square);
 
+    OINK_INLINE Side swap_side(Side side)
+    {
+        return side ^ 1;
+    }
+
+    // White pieces are always odd
+    OINK_INLINE Side get_piece_side(Piece piece)
+    {
+        return util::one ^ (piece & util::one);
+    }
+
     // Get occupancy of given rank [ranks::first, ranks::eighth].
 	// Returns occupancy on [0,255] in lowest eight bits of return value.
     OINK_INLINE Bitboard get_rank_occupancy(Bitboard b, RankFile rank)

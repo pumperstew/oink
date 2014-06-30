@@ -54,10 +54,13 @@ namespace chess
     {
         Bitboard occ = 0;
         Bitboard this_file_occ = b & moves::file_masks[file]; //mask off everything but this file
+        Square down_shift = file;
         for (RankFile rank = 0; rank < util::BOARD_SIZE; ++rank)
 		{
-			occ |= ( ( (this_file_occ >> rank_file_to_square(rank, file) ) & util::fullrank) //deal with one bit at a time
+			occ |= ( ( (this_file_occ >> down_shift) & util::fullrank) //deal with one bit at a time
 				   << rank); //shift up to appropriate bit on [0, 7]
+
+            down_shift += util::BOARD_SIZE;
         }
         return occ;
     }

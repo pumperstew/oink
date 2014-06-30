@@ -15,8 +15,8 @@ namespace chess
         const Bitboard black_rooks	 = 0x8100000000000000;
         const Bitboard white_knights = 0x0000000000000042;
         const Bitboard black_knights = 0x4200000000000000;
-        const Bitboard white_bishops = 0x00000000000000A4;
-        const Bitboard black_bishops = 0xA400000000000000;
+        const Bitboard white_bishops = 0x0000000000000024;
+        const Bitboard black_bishops = 0x2400000000000000;
         const Bitboard white_queen	 = 0x0000000000000008;
         const Bitboard black_queen	 = 0x0800000000000000;
         const Bitboard white_pawns	 = 0x000000000000FF00;
@@ -27,7 +27,7 @@ namespace chess
     {
         const Bitboard one         = 0x0000000000000001;
         const Bitboard full        = 0xffffffffffffffff;
-        const Bitboard nil         =  0x0000000000000000;
+        const Bitboard nil         = 0x0000000000000000;
         const Bitboard fullrank    = 0x00000000000000ff;
         const Square   NUM_SQUARES = 64;
         const RankFile BOARD_SIZE  = 8;
@@ -57,37 +57,28 @@ namespace chess
 		const RankFile h = 7;
 	}
 
-    namespace sides
-    {
-        const Side white = 0;
-        const Side black = 1;
-
-        const RankFile STARTING_PAWN_RANKS[] = { ranks::second, ranks::seventh };
-		const RankFile ABOUT_TO_PROMOTE[]    = { ranks::seventh, ranks::second };
-    }
-
 	namespace pieces
 	{
 		const Piece NONE         = 0;
-		const Piece WHITE_PAWN   = 1;         //  0001
-		const Piece WHITE_KING   = 2;         //  0010
-		const Piece WHITE_KNIGHT = 3;         //  0011
-		const Piece WHITE_BISHOP = 5;         //  0101
-		const Piece WHITE_ROOK   = 6;         //  0110
-		const Piece WHITE_QUEEN  = 7;         //  0111
-		const Piece BLACK_PAWN   = 9;         //  1001
-		const Piece BLACK_KING   = 10;        //  1010
-		const Piece BLACK_KNIGHT = 11;        //  1011
-		const Piece BLACK_BISHOP = 13;        //  1101
-		const Piece BLACK_ROOK   = 14;        //  1110
-		const Piece BLACK_QUEEN  = 15;        //  1111
+		const Piece WHITE_PAWN   = 0x1;
+        const Piece BLACK_PAWN   = 0x2;
+		const Piece WHITE_KING   = 0x3;
+        const Piece BLACK_KING   = 0x4;
+        const Piece WHITE_ROOK   = 0x5;
+        const Piece BLACK_ROOK   = 0x6;
+        const Piece WHITE_KNIGHT = 0x7;
+        const Piece BLACK_KNIGHT = 0x8;
+        const Piece WHITE_BISHOP = 0x9;
+        const Piece BLACK_BISHOP = 0xa;
+        const Piece WHITE_QUEEN  = 0xb;
+        const Piece BLACK_QUEEN  = 0xc;
 
-		const Piece KNIGHTS[2] = { 3, 11 };
-		const Piece BISHOPS[2] = { 5, 13 };
-		const Piece KINGS[2]   = { 2, 10 };
-		const Piece PAWNS[2]   = { 1, 9 };
-		const Piece ROOKS[2]   = { 6, 14 };
-		const Piece QUEENS[2]  = { 7, 15 };
+		const Piece KNIGHTS[2] = { 0x7, 0x8 };
+		const Piece BISHOPS[2] = { 0x9, 0xa };
+		const Piece KINGS[2]   = { 0x3, 0x4 };
+		const Piece PAWNS[2]   = { 0x1, 0x2 };
+		const Piece ROOKS[2]   = { 0x5, 0x6 };
+		const Piece QUEENS[2]  = { 0xb, 0xc };
 
 		extern char symbols[15];
 	}
@@ -168,6 +159,30 @@ namespace chess
 		const Square g8 = 62;
 		const Square h8 = 63;
 	}
+
+    namespace sides
+    {
+        const Side white = 0;
+        const Side black = 1;
+
+        const RankFile STARTING_PAWN_RANKS[] = { ranks::second,    ranks::seventh    };
+		const RankFile ABOUT_TO_PROMOTE[]    = { ranks::seventh,   ranks::second     };
+        const RankFile NEXT_RANK_OFFSET[]    = { util::BOARD_SIZE, -util::BOARD_SIZE };
+
+        const unsigned char CASTLING_RIGHTS_WHITE_KINGSIDE  = 0x1;
+        const unsigned char CASTLING_RIGHTS_WHITE_QUEENSIDE = 0x2;
+        const unsigned char CASTLING_RIGHTS_BLACK_KINGSIDE  = 0x4;
+        const unsigned char CASTLING_RIGHTS_BLACK_QUEENSIDE = 0x8;
+
+        const unsigned char CASTLING_RIGHTS_ANY_WHITE = CASTLING_RIGHTS_WHITE_KINGSIDE | CASTLING_RIGHTS_WHITE_QUEENSIDE;
+        const unsigned char CASTLING_RIGHTS_ANY_BLACK = CASTLING_RIGHTS_BLACK_KINGSIDE | CASTLING_RIGHTS_BLACK_QUEENSIDE;
+        const unsigned char CASTLING_RIGHTS_KINGSIDE[2]  = { CASTLING_RIGHTS_WHITE_KINGSIDE, CASTLING_RIGHTS_WHITE_QUEENSIDE };
+        const unsigned char CASTLING_RIGHTS_QUEENSIDE[2] = { CASTLING_RIGHTS_BLACK_KINGSIDE, CASTLING_RIGHTS_BLACK_QUEENSIDE };
+        const unsigned char CASTLING_RIGHTS_ANY[2]       = { CASTLING_RIGHTS_ANY_WHITE,      CASTLING_RIGHTS_ANY_BLACK };
+
+        const Square KING_ROOK_START[2]  = { squares::h1, squares::h8 };
+        const Square QUEEN_ROOK_START[2] = { squares::a1, squares::a8 };
+    }
 
     namespace squarebits
     {
@@ -321,7 +336,7 @@ namespace chess
 
         const Bitboard pawn_moves[2][util::NUM_SQUARES] =
         {
-            { //white
+            {   // White
                 0x0000000000000100,                                                                               
                 0x0000000000000200,                                                                               
                 0x0000000000000400,                                                                               
@@ -387,7 +402,7 @@ namespace chess
                 0x0000000000000000,
                 0x0000000000000000
             },
-            { //black
+            {   // Black
                 0x0000000000000000,                                                                               
                 0x0000000000000000,                                                                               
                 0x0000000000000000,                                                                               
@@ -591,6 +606,8 @@ namespace chess
             }
         };
         
+        //const Bitboard magic_file_rotators
+
 		extern Bitboard file_masks[util::BOARD_SIZE];
         extern Bitboard rank_masks[util::BOARD_SIZE];
 		extern Bitboard diag_masks_a1h8[util::NUM_SQUARES];

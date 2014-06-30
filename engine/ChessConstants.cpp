@@ -54,11 +54,11 @@ namespace chess
 		for (RankFile i = 0; i < util::BOARD_SIZE; ++i)  //rank or file loop
         {
             file_masks[i] = util::nil;
-            rank_masks[i] = util::fullrank << (i << 3);
+            rank_masks[i] = util::fullrank << calc_rank_shift(i);
 
             for (RankFile j = 0; j < util::BOARD_SIZE; ++j) //rank loop for file masks
             { 
-                file_masks[i] |= util::one << (j*util::BOARD_SIZE + i);
+                file_masks[i] |= util::one << rank_file_to_square(j, i);
             }
         }
 	}

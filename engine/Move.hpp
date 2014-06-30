@@ -92,7 +92,7 @@ namespace chess
 
         OINK_INLINE Piece get_en_passant() const
 	    {
-		    unsigned int special = (data & SPECIAL_MASK) >> SPECIAL_OFFSET;
+		    unsigned int special = get_special();
             return (special == pieces::WHITE_PAWN || special == pieces::BLACK_PAWN) ?
                     special : pieces::NONE;
 	    }

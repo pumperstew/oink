@@ -2,9 +2,9 @@
 #include "Position.hpp"
 #include "BasicOperations.hpp"
 
-#define OINK_MOVEGEN_DIAGNOSTICS
-
 using namespace std;
+
+//#define OINK_MOVEGEN_DIAGNOSTICS
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
     #include "Display.hpp"
@@ -53,7 +53,7 @@ namespace chess
             Square dest_square;
 		    destinations = get_and_clear_first_occ_square(destinations, &dest_square);
 		    move.set_destination(dest_square);
-		    move.set_captured_piece(pieces::PAWNS[side ^ 1]);
+		    move.set_captured_piece(pieces::PAWNS[swap_side(side)]);
             move.set_en_passant(pieces::PAWNS[side]);
             moves.push_back(move);
         }
@@ -62,21 +62,23 @@ namespace chess
         assert(!destinations);
 	}
 
-	//OINK_TODO: castling moves will need to be checked for validity later.
 	void generate_king_moves(MoveVector &moves, const Position &position, Side side)
     {
 		Move move;
 		move.set_piece(pieces::KINGS[side]);
 
 		Bitboard king = position.kings[side];
+        assert(king);
+
 		Square square = get_first_occ_square(king);
 		move.set_source(square);
 
-		generate_moves_from_destinations(moves::king_moves[square] & ~position.sides[side], move, moves, position, side);
+        Bitboard destinations = moves::king_moves[square] & ~position.sides[side];
+		generate_moves_from_destinations(destinations, move, moves, position, side);
 
         if (side == sides::white && square == squares::e1)
         {
-            if (position.squares[squares::h1] == pieces::WHITE_ROOK)
+            if ((position.castling_rights & sides::CASTLING_RIGHTS_WHITE_KINGSIDE) && (position.squares[squares::h1] == pieces::WHITE_ROOK))
             {
                 if (util::nil == (position.whole_board & moves::white_kingside_castling_mask))
                 {
@@ -87,7 +89,7 @@ namespace chess
                 }
             }
 
-            if (position.squares[squares::a1] == pieces::WHITE_ROOK)
+            if ((position.castling_rights & sides::CASTLING_RIGHTS_WHITE_QUEENSIDE) && (position.squares[squares::a1] == pieces::WHITE_ROOK))
             {
                 if (util::nil == (position.whole_board & moves::white_queenside_castling_mask))
                 {
@@ -100,7 +102,7 @@ namespace chess
         }
         else if (side == sides::black && square == squares::e8)
         {
-            if (position.squares[squares::h8] == pieces::BLACK_ROOK)
+            if ((position.castling_rights & sides::CASTLING_RIGHTS_BLACK_KINGSIDE) && (position.squares[squares::h8] == pieces::BLACK_ROOK))
             {
                 if (util::nil == (position.whole_board & moves::black_kingside_castling_mask))
                 {
@@ -111,7 +113,7 @@ namespace chess
                 }
             }
 
-            if (position.squares[squares::a8] == pieces::BLACK_ROOK)
+            if ((position.castling_rights & sides::CASTLING_RIGHTS_BLACK_QUEENSIDE) && (position.squares[squares::a8] == pieces::BLACK_ROOK))
             {
                 if (util::nil == (position.whole_board & moves::black_queenside_castling_mask))
                 {
@@ -136,15 +138,10 @@ namespace chess
             knights = get_and_clear_first_occ_square(knights, &source_sq);
 			move.set_source(source_sq);
 
-			generate_moves_from_destinations(moves::knight_moves[source_sq] & ~position.sides[side], move, moves, position, side);
+            Bitboard destinations = moves::knight_moves[source_sq] & ~position.sides[side] & ~position.kings[swap_side(side)];
+			generate_moves_from_destinations(destinations, move, moves, position, side);
         }
     }
-
-	//If we wanted to store the new position in the move, we could do (in innner loop)
-	//But RemoveCaptured step is ugly (switch). But we have to do it either here or when the move is made.
-    //Position newPosition = position;
-    //newPosition.knights[side] = (newPosition.knights[side] | destinationBitboard) & ~thisKnight;
-    //newPosition.RemoveCaptured(side, newPosition.knights[side]);
 
 	void generate_pawn_moves(MoveVector &moves, const Position &position, Side side)
     {
@@ -157,6 +154,7 @@ namespace chess
         {
             pawns = get_and_clear_first_occ_square(pawns, &source_sq);
 			move.set_source(source_sq);
+            move.set_en_passant(pieces::NONE);
 
 			RankFile rank = square_to_rank(source_sq);
 			bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
@@ -166,19 +164,21 @@ namespace chess
             {
 				whole_board = exclude_fourth_or_fifth_rank_if_third_or_sixth_occupied(whole_board, side);
             }
-			//Since for pawns we're doing captures separately, we use whole_board here. We also exclude 4th(5th) rank if 3rd(6th) is occupied.
-			Bitboard destinations = moves::pawn_moves[side][source_sq] & ~whole_board;
-			
+			// Since for pawns we're doing captures separately, we use whole_board here. We also exclude 4th(5th) rank if 3rd(6th) is occupied.
             // Normal moves and promotions.
+			Bitboard destinations = moves::pawn_moves[side][source_sq] & ~whole_board;
 			generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side, promoting);
 
             // Normal captures
-			destinations = moves::pawn_captures[side][source_sq] & position.get_other_side_position(side);
+            // OINK_TODO: why not combine captures and normal moves?
+			destinations = moves::pawn_captures[side][source_sq] & position.sides[swap_side(side)] & ~position.kings[swap_side(side)];
 			generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side, promoting);
 
-            // EP captures: eqTargetSquare is set if there is a valid target for an EP capture. 
-            // The actual captured pawn will have to be fixed up later.
-            destinations = moves::pawn_captures[side][source_sq] & (util::one << position.ep_target_square);
+            // EP captures: ep_target_square is set if there is a valid target for an EP capture. 
+            // The actual captured pawn will have to be fixed up later. 
+            // OINK_TODO: cleaner way?
+            Bitboard ep_bb = (position.ep_target_square == squares::NO_SQUARE) ? util::nil : util::one << position.ep_target_square;
+            destinations = moves::pawn_captures[side][source_sq] & ep_bb;
             // There must be a maximum of one destination.
             generate_ep_move(destinations, move, moves, position, side);
         }
@@ -199,7 +199,7 @@ namespace chess
 			Bitboard file_occ = get_file_occupancy(position.whole_board, file);
 			Bitboard destinations = (moves::rook_horiz_moves[source_sq][rank_occ] |
 									 moves::rook_vert_moves[source_sq][file_occ])
-									 & ~position.sides[side];
+									 & ~position.sides[side] & ~position.kings[swap_side(side)];
 
 			generate_moves_from_destinations(destinations, move, moves, position, side);
 		}
@@ -233,10 +233,10 @@ namespace chess
 			Bitboard projected_a1h8_occ = project_occupancy_from_a1h8(position.whole_board, source_sq);
 			Bitboard projected_a8h1_occ = project_occupancy_from_a8h1(position.whole_board, source_sq);
 			Bitboard destinations = (moves::diag_moves_a1h8[source_sq][projected_a1h8_occ] | moves::diag_moves_a8h1[source_sq][projected_a8h1_occ])
-				& ~position.sides[side];
+				                     & ~position.sides[side] & ~position.kings[swap_side(side)];
 
-			assert(projected_a8h1_occ < 256);
-			assert(projected_a1h8_occ < 256);
+			assert(projected_a8h1_occ <= util::fullrank);
+			assert(projected_a1h8_occ <= util::fullrank);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
             print_bitboard(projected_a1h8_occ, "projected_a1h8_occ");
@@ -246,6 +246,7 @@ namespace chess
 				make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ], "a1h8 moves"),
 				make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ], "a8h1 moves"),
 				make_pair(destinations, "destinations"),
+                make_pair(position.sides[sides::black], "black")
             },
             source_sq);
 #endif
