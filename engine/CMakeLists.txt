@@ -13,8 +13,10 @@ set(ENGINE_SRC
     Display.hpp
     Display.cpp
 )
-    
+
+
 add_library(engine ${ENGINE_SRC})
+# target_compile_options(engine PRIVATE $<$<CONFIG:Release>:/arch:AVX>)
 
 add_subdirectory(tests)
 add_subdirectory(test_harness)

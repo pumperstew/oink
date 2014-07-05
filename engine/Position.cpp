@@ -1,5 +1,8 @@
 #include "Position.hpp"
-#include "Display.hpp"
+
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+    #include "Display.hpp"
+#endif
 
 namespace chess
 {
@@ -186,21 +189,21 @@ namespace chess
 
         // Rank / file sliders: similar idea -- try to attack the other side's rooks.
         Bitboard attackers = queens[other_side] | rooks[other_side];
-        Bitboard rotated_occ = get_rank_occupancy(whole_board, king_rank);
-        if (attackers & moves::rook_horiz_moves[king_square][rotated_occ])
+        Bitboard rotated_occ = get_6bit_rank_occupancy(whole_board, king_rank);
+        if (attackers & moves::horiz_slider_moves[king_square][rotated_occ])
             return true;
 
-        rotated_occ = get_file_occupancy(whole_board, king_file);
-        if (attackers & moves::rook_vert_moves[king_square][rotated_occ])
+        rotated_occ = get_6bit_file_occupancy(whole_board, king_file);
+        if (attackers & moves::vert_slider_moves[king_square][rotated_occ])
             return true;
 
         // Diagonal sliders
         attackers = queens[other_side] | bishops[other_side];
-        rotated_occ = project_occupancy_from_a1h8(whole_board, king_square);
+        rotated_occ = project_occupancy_from_a1h8_to6bit(whole_board, king_square);
         if (attackers & moves::diag_moves_a1h8[king_square][rotated_occ])
             return true;
 
-        rotated_occ = project_occupancy_from_a8h1(whole_board, king_square);
+        rotated_occ = project_occupancy_from_a8h1_to6bit(whole_board, king_square);
         if (attackers & moves::diag_moves_a8h1[king_square][rotated_occ])
             return true;
 
@@ -237,6 +240,7 @@ namespace chess
 
             if (move.get_en_passant() != pieces::NONE)
             {
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
                 if (squares[dest - sides::NEXT_RANK_OFFSET[side]] != pieces::WHITE_PAWN &&
                     squares[dest - sides::NEXT_RANK_OFFSET[side]] != pieces::BLACK_PAWN)
                 {
@@ -246,7 +250,7 @@ namespace chess
                     print_position(*this);
                     print_position(backup);
                 }
-
+#endif
                 Bitboard pawn_captured_ep_mask    = util::one << (dest - sides::NEXT_RANK_OFFSET[side]);  // the square below or above dest. Less shift for white, more for black
                 pawns[swap_side(side)]           ^= pawn_captured_ep_mask;
                 sides[swap_side(side)]           ^= pawn_captured_ep_mask;

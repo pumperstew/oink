@@ -195,11 +195,11 @@ namespace chess
 			RankFile rank, file;
 			square_to_rank_file(source_sq, rank, file);
 
-			Bitboard rank_occ = get_rank_occupancy(position.whole_board, rank);
-			Bitboard file_occ = get_file_occupancy(position.whole_board, file);
-			Bitboard destinations = (moves::rook_horiz_moves[source_sq][rank_occ] |
-									 moves::rook_vert_moves[source_sq][file_occ])
-									 & ~position.sides[side] & ~position.kings[swap_side(side)];
+			Bitboard rank_occ_6bit = get_6bit_rank_occupancy(position.whole_board, rank);
+			Bitboard file_occ_6bit = get_6bit_file_occupancy(position.whole_board, file);
+			Bitboard destinations  = (moves::horiz_slider_moves[source_sq][rank_occ_6bit] | moves::vert_slider_moves[source_sq][file_occ_6bit])
+									  & ~position.sides[side] 
+                                      & ~position.kings[swap_side(side)];
 
 			generate_moves_from_destinations(destinations, move, moves, position, side);
 		}
@@ -230,13 +230,13 @@ namespace chess
             source_sq);
 #endif
 
-			Bitboard projected_a1h8_occ = project_occupancy_from_a1h8(position.whole_board, source_sq);
-			Bitboard projected_a8h1_occ = project_occupancy_from_a8h1(position.whole_board, source_sq);
-			Bitboard destinations = (moves::diag_moves_a1h8[source_sq][projected_a1h8_occ] | moves::diag_moves_a8h1[source_sq][projected_a8h1_occ])
+			Bitboard projected_a1h8_occ_6bit = project_occupancy_from_a1h8_to6bit(position.whole_board, source_sq);
+			Bitboard projected_a8h1_occ_6bit = project_occupancy_from_a8h1_to6bit(position.whole_board, source_sq);
+			Bitboard destinations = (moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit] | moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit])
 				                     & ~position.sides[side] & ~position.kings[swap_side(side)];
 
-			assert(projected_a8h1_occ <= util::fullrank);
-			assert(projected_a1h8_occ <= util::fullrank);
+            assert(projected_a1h8_occ_6bit <= util::FULL_6BITOCC);
+			assert(projected_a8h1_occ_6bit <= util::FULL_6BITOCC);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
             print_bitboard(projected_a1h8_occ, "projected_a1h8_occ");

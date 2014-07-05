@@ -9,9 +9,9 @@ namespace chess
     Square   get_first_occ_square(Bitboard b);
 	Bitboard get_and_clear_first_occ_square(Bitboard b, Square *sq);
 	
-	Bitboard get_file_occupancy(Bitboard b, RankFile rank);
-	Bitboard project_occupancy_from_a1h8(Bitboard b, Square square);
-	Bitboard project_occupancy_from_a8h1(Bitboard b, Square square);
+	Bitboard get_6bit_file_occupancy(Bitboard b, RankFile rank);
+	Bitboard project_occupancy_from_a1h8_to6bit(Bitboard b, Square square);
+	Bitboard project_occupancy_from_a8h1_to6bit(Bitboard b, Square square);
 
     OINK_INLINE Side swap_side(Side side)
     {
@@ -24,11 +24,12 @@ namespace chess
         return util::one ^ (piece & util::one);
     }
 
-    // Get occupancy of given rank [ranks::first, ranks::eighth].
-	// Returns occupancy on [0,255] in lowest eight bits of return value.
-    OINK_INLINE Bitboard get_rank_occupancy(Bitboard b, RankFile rank)
+    // Get occupancy of given rank on [ranks::first, ranks::eighth].
+	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
+    OINK_INLINE Bitboard get_6bit_rank_occupancy(Bitboard b, RankFile rank)
     {
-        return (b >> (rank << 3)) & util::fullrank;
+        Bitboard eightbit = (b >> (rank << 3)) & util::fullrank;
+        return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
     }
 
     OINK_INLINE bool is_square_occupied(Bitboard b, Square square)

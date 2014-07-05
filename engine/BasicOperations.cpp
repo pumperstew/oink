@@ -47,25 +47,25 @@ namespace chess
             return pos | ((pos & moves::rank_masks[ranks::sixth]) >> 8); 
     }
 
-	// Get occupancy of given file [0,7].
-	// Returns occupancy on [0,255] in lowest eight bits of return value.
+	// Get occupancy of given file on [files::a, files::h].
+	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
 	// Non-trivial, current impl. isn't great. OINK_TODO: replace with magic multiplier implementation, which will be much faster.
-    Bitboard get_file_occupancy(Bitboard b, RankFile file)
+    Bitboard get_6bit_file_occupancy(Bitboard b, RankFile file)
     {
-        Bitboard occ = 0;
+        Bitboard eightbit = 0;
         Bitboard this_file_occ = b & moves::file_masks[file]; //mask off everything but this file
         Square down_shift = file;
         for (RankFile rank = 0; rank < util::BOARD_SIZE; ++rank)
 		{
-			occ |= ( ( (this_file_occ >> down_shift) & util::fullrank) //deal with one bit at a time
-				   << rank); //shift up to appropriate bit on [0, 7]
+			eightbit |= ( ( (this_file_occ >> down_shift) & util::fullrank) //deal with one bit at a time
+				        << rank); //shift up to appropriate bit on [0, 7]
 
             down_shift += util::BOARD_SIZE;
         }
-        return occ;
+        return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
     }
 
-    Bitboard project_occupancy_from_a1h8(Bitboard b, Square square)
+    Bitboard project_occupancy_from_a1h8_to6bit(Bitboard b, Square square)
     {
         Bitboard occ = 0;
         Bitboard a1h8_diag_occ = b & moves::diag_masks_a1h8[square];
@@ -79,13 +79,14 @@ namespace chess
         for (RankFile rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
 		{
 			occ |= (a1h8_diag_occ >> rank_file_to_square(rankOffset, 0)) // shift occupancy down to the bottom eight bits.
-				   & util::fullrank;                                 // only first rank should contribute.
+				   & util::fullrank;                                     // only first rank should contribute.
         }
 
-        return occ >> extraInterceptShift;
+        occ = occ >> extraInterceptShift;
+        return (occ & util::OCC_8_TO_6_MASK) >> 1;
     }
 
-    Bitboard project_occupancy_from_a8h1(Bitboard b, Square square)
+    Bitboard project_occupancy_from_a8h1_to6bit(Bitboard b, Square square)
     {
         Bitboard occ = 0;
         Bitboard a8h1_diag_occ = b & moves::diag_masks_a8h1[square];
@@ -102,6 +103,7 @@ namespace chess
                    & util::fullrank;
         }
 
-        return occ >> extraInterceptShift;
+        occ = occ >> extraInterceptShift;
+        return (occ & util::OCC_8_TO_6_MASK) >> 1;
     }
 }

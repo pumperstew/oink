@@ -17,6 +17,13 @@ int perft_ep_count;
 int perft_check_count;
 int perft_mate_count;
 
+const uint64_t PERFT_NODES_EXPECTED[]    = { 1, 20, 400, 8902, 197281, 4865609, 119060324 };
+const uint64_t PERFT_CAPTURES_EXPECTED[] = { 0, 0, 0, 34, 1576, 82719, 2812008 };
+const uint64_t PERFT_EPS_EXPECTED[]      = { 0, 0, 0, 0, 0, 258, 5248 };
+const uint64_t PERFT_CASTLES_EXPECTED[]  = { 0, 0, 0, 0, 0, 0, 0 };
+const uint64_t PERFT_PROMS_EXPECTED[]    = { 0, 0, 0, 0, 0, 0, 0 };
+const uint64_t PERFT_CHECKS_EXPECTED[]   = { 0, 0, 0, 12, 469, 27351, 809099 };
+
 class StopWatch
 {
     chrono::high_resolution_clock::time_point start;
@@ -38,7 +45,7 @@ uint64_t perft_fast(int depth, Position &pos, Side side)
     if (depth == 0)
         return 1;
  
-    auto moves = generate_all_moves(pos, side);
+    MoveVector moves = generate_all_moves(pos, side);
     size_t count = moves.size();
     uint64_t leaves = 0;
     for (int i = 0; i < count; ++i)
@@ -60,7 +67,7 @@ uint64_t perft(int depth, Position &pos, Side side)
     if (depth == 0)
         return 1;
  
-    auto moves = generate_all_moves(pos, side);
+    MoveVector moves = generate_all_moves(pos, side);
     bool any = false;
     for (int i = 0; i < moves.size(); ++i)
     {
@@ -92,7 +99,7 @@ uint64_t perft(int depth, Position &pos, Side side)
     return leaves;
 }
 
-void perft_driver(int depth)
+void perft_driver(const int depth)
 {
     Position pos;
     pos.setup_starting_position();
@@ -105,28 +112,31 @@ void perft_driver(int depth)
     perft_mate_count    = 0;
 
     StopWatch watch;
-    uint64_t count = perft(depth, pos, sides::white);
+    uint64_t node_count = perft_fast(depth, pos, sides::white);
 
     int64_t elapsed = watch.elapsed();
-    uint64_t nps = elapsed ? (uint64_t)(1000 * count / elapsed) : 0;
+    uint64_t nps = elapsed ? (uint64_t)(1000 * node_count / elapsed) : 0;
+
+    auto check_print = [depth](uint64_t got, const uint64_t* expected_array) {
+        return got == expected_array[depth] ? "        OK" : " ===============> FAIL";
+    };
 
     cout.imbue(std::locale(""));
-    cout      << "\nperft(" << depth << ")"
-              << "\nNodes: " << count
-              << "\nNodes/second " << nps
-              << "\nCaptures: " << perft_capture_count
-              << "\nEPs: "      << perft_ep_count
-              << "\nCastles: "  << perft_castle_count
-              << "\nProms: "    << perft_prom_count
-              << "\nChecks: "   << perft_check_count
-              << "\nMates: "    << perft_mate_count
-              << "\n";
+    cout << "\nperft(" << depth << ")"
+         << "\nNodes: "    << node_count            << check_print(node_count, PERFT_NODES_EXPECTED)
+         << "\nCaptures: " << perft_capture_count   << check_print(perft_capture_count, PERFT_CAPTURES_EXPECTED)
+         << "\nEPs: "      << perft_ep_count        << check_print(perft_ep_count, PERFT_EPS_EXPECTED)
+         << "\nCastles: "  << perft_castle_count    << check_print(perft_castle_count, PERFT_CASTLES_EXPECTED)
+         << "\nProms: "    << perft_prom_count      << check_print(perft_prom_count, PERFT_PROMS_EXPECTED)
+         << "\nChecks: "   << perft_check_count     << check_print(perft_check_count, PERFT_CHECKS_EXPECTED)
+         << "\nMates: "    << perft_mate_count
+         << "\nNodes/second " << nps
+         << "\n";
     cout.flush();
-               
 
-   /* printf("\npertf(%d):\nnodes: %I64u\ncaptures: %d\ncastles: %d\nproms: %d\neps: %d\nchecks: %d\nmates: %d\nelapsed: %f\nnps = %I64u\n", 
-           depth, count, perft_capture_count, perft_castle_count, perft_prom_count, perft_ep_count, perft_check_count, perft_mate_count, 
-           elapsed / 1000., );*/
+    /* printf("\npertf(%d):\nnodes: %I64u\ncaptures: %d\ncastles: %d\nproms: %d\neps: %d\nchecks: %d\nmates: %d\nelapsed: %f\nnps = %I64u\n", 
+        depth, count, perft_capture_count, perft_castle_count, perft_prom_count, perft_ep_count, perft_check_count, perft_mate_count, 
+        elapsed / 1000., );*/
 }
 
 //void collapsedFilesIndex2(Bitboard b) {
