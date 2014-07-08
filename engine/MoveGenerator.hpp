@@ -5,7 +5,7 @@
 
 namespace chess
 {
-    const size_t OINK_MOVE_VECTOR_INITIAL_SIZE = 30;
+    const size_t OINK_MOVE_VECTOR_INITIAL_SIZE = 40;
 
     class Position;
 

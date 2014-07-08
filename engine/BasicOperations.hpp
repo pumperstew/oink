@@ -28,6 +28,7 @@ namespace chess
 	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
     OINK_INLINE Bitboard get_6bit_rank_occupancy(Bitboard b, RankFile rank)
     {
+        // OINK_TODO: this is not the most efficient way
         Bitboard eightbit = (b >> (rank << 3)) & util::fullrank;
         return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
     }

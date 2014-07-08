@@ -40,7 +40,7 @@ public:
     }
 };
 
-uint64_t perft_fast(int depth, Position &pos, Side side)
+static uint64_t perft_fast(int depth, Position &pos, Side side)
 {
     if (depth == 0)
         return 1;
@@ -60,7 +60,7 @@ uint64_t perft_fast(int depth, Position &pos, Side side)
     return leaves;
 }
 
-uint64_t perft(int depth, Position &pos, Side side)
+static uint64_t perft(int depth, Position &pos, Side side)
 {
     uint64_t leaves = 0;
  
@@ -99,7 +99,7 @@ uint64_t perft(int depth, Position &pos, Side side)
     return leaves;
 }
 
-void perft_driver(const int depth)
+static void perft_driver(const int depth)
 {
     Position pos;
     pos.setup_starting_position();
@@ -112,7 +112,7 @@ void perft_driver(const int depth)
     perft_mate_count    = 0;
 
     StopWatch watch;
-    uint64_t node_count = perft_fast(depth, pos, sides::white);
+    uint64_t node_count = perft(depth, pos, sides::white);
 
     int64_t elapsed = watch.elapsed();
     uint64_t nps = elapsed ? (uint64_t)(1000 * node_count / elapsed) : 0;
@@ -122,7 +122,7 @@ void perft_driver(const int depth)
     };
 
     cout.imbue(std::locale(""));
-    cout << "\nperft(" << depth << ")"
+    cout << "\nperft("     << depth << ")"
          << "\nNodes: "    << node_count            << check_print(node_count, PERFT_NODES_EXPECTED)
          << "\nCaptures: " << perft_capture_count   << check_print(perft_capture_count, PERFT_CAPTURES_EXPECTED)
          << "\nEPs: "      << perft_ep_count        << check_print(perft_ep_count, PERFT_EPS_EXPECTED)
@@ -139,92 +139,37 @@ void perft_driver(const int depth)
         elapsed / 1000., );*/
 }
 
-//void collapsedFilesIndex2(Bitboard b) {
-//   Bitboard r = b;
-//   r |= r >> 32;
-//   //r |= r >> 16;
-//   //r |= r >>  8;
-//   //Bitboard r = b & 0xFF;
-//   print_bitboard(b, "unrotated");
-//   print_bitboard(r, "rotated");
-//}
-//
-
-static Bitboard rotate_occupancy_to_vertical(Bitboard occupancy /*in low eight bits*/, RankFile desired_file)
+static void perft_driver_fast(const int depth)
 {
-	Bitboard rotated_occ = util::nil;
-    for (RankFile rank = 0; (rank < util::BOARD_SIZE) && occupancy; ++rank)
-	{
-        Bitboard thisbit = occupancy & util::one;
-        occupancy >>= 1;
+    Position pos;
+    pos.setup_starting_position();
 
-        rotated_occ |= thisbit << rank_file_to_square(rank, desired_file); // shift back up to correct point.
-    }
+    StopWatch watch;
+    uint64_t node_count = perft_fast(depth, pos, sides::white);
 
-	return rotated_occ;
+    int64_t elapsed = watch.elapsed();
+    uint64_t nps = elapsed ? (uint64_t)(1000 * node_count / elapsed) : 0;
+
+    auto check_print = [depth](uint64_t got, const uint64_t* expected_array) {
+        return got == expected_array[depth] ? "        OK" : " ===============> FAIL";
+    };
+
+    cout.imbue(std::locale(""));
+    cout << "\nperft(" << depth << ")"
+         << "\nNodes: "       << node_count << check_print(node_count, PERFT_NODES_EXPECTED)
+         << "\nNodes/second " << nps
+         << "\n";
+    cout.flush();
 }
 
-void test_magic()
+static void play_random()
 {
-    Bitboard test = moves::file_masks[2] & ~4 & ~(1ULL<<58) & ~(1ULL<<10);
-
-    print_bitboards({make_pair(test, "test"), make_pair(test * 0x2010080402010080ULL, "test*") });
-
-    const Bitboard magic = 0x8040201008040201;
-    const Bitboard magic2 = 0x8040201008040200;
-    //print_bitboard(magic, "magic");
-
-    Bitboard poo = 0x0100000000000001ULL;
-
-    for (Bitboard b = 0; b <= 8; ++b)//util::fullrank; ++b)
-    {
-        Bitboard on_file = rotate_occupancy_to_vertical(b, 0);
-        Bitboard only6 = on_file & (moves::file_masks[0] ^ poo);
-
-        Bitboard multiplied = (only6 * magic);
-        Bitboard multiplied2 = (only6 * magic2);
-        Bitboard rotated_back = multiplied >> 57;
-        Bitboard rotated_back2 = multiplied2 >> 57;
-
-        assert(rotated_back == rotated_back2);
-        //print_bitboard(poo, "poo");
-        print_bitboards({
-            make_pair(b, "b"),
-            make_pair(magic, "magic"),
-            make_pair(on_file, "on_file"),
-            make_pair(only6, "only6"),
-            make_pair(multiplied, "multiplied"),
-            //make_pair(multiplied2, "multiplied2"),
-            make_pair(rotated_back, "rotated_back")
-        });
-
-        assert((rotated_back & 0x3f) == rotated_back);
-        //assert(rotated_back == (b & 0x7e));
-        
-    }
-}
-
-
-int main(int argc, char **argv)
-{
-    constants_initialize();
-
-   // test_magic();
-
- //   return 0;
-    
-
-    for (int depth = 1; depth < 7; ++depth)
-    {
-        perft_driver(depth);
-    }
-    return 0;
-
     Position pos;
     pos.setup_starting_position();
     Side side = sides::white;
     
-    std::mt19937 rand_engine(10);
+    std::random_device rand_dev;
+    std::mt19937 rand_engine(10); //rand_dev());
     
     print_bitboard(pos.bishops[sides::white], "wb");
 
@@ -235,15 +180,33 @@ int main(int argc, char **argv)
         auto moves = generate_all_moves(pos, side);
         if (moves.empty())
         {
+            printf("\n****** ERROR ****** : should have been mate or stalemate last move!\n");
             break;
         }
 
-        std::uniform_int_distribution<int> rand_dist(0, (int)moves.size() - 1);
-        int move_index = rand_dist(rand_engine);
+        int tried = 0;
+        while (tried < moves.size())
+        {
+            std::uniform_int_distribution<int> rand_dist(0, (int)moves.size() - 1);
+            int move_index = rand_dist(rand_engine);
 
-        print_move(moves[move_index], move_num);
-        pos.make_move(moves[move_index]);
-        print_position(pos);
+            if (pos.make_move(moves[move_index]))
+            {
+                print_move(moves[move_index], move_num);
+                print_position(pos);
+                break;
+            }
+            ++tried;
+        }
+            
+        if (tried == moves.size())
+        {
+            if (pos.detect_check(side))
+                printf("\nMate?\n");
+            else
+                printf("\nStalemate?\n");
+            break;
+        }
 
         side = swap_side(side);
 
@@ -254,4 +217,21 @@ int main(int argc, char **argv)
 
         //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     }
+}
+
+int main(int argc, char **argv)
+{
+    constants_initialize();
+
+    /*perft_driver_fast(6);
+    return 0;*/
+
+    for (int depth = 1; depth < 7; ++depth)
+    {
+        perft_driver(depth);
+    }
+    return 0;
+
+    play_random();
+    return 0;
 }

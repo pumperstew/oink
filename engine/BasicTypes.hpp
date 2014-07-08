@@ -5,6 +5,8 @@
 
 #define OINK_INLINE inline
 
+//#define OINK_MOVEGEN_DIAGNOSTICS
+
 #ifdef _MSC_VER
     #ifdef _WIN64
         #define OINK_MSVC_64

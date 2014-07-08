@@ -612,7 +612,45 @@ namespace chess
             }
         };
         
-		extern Bitboard file_masks[util::BOARD_SIZE];                                   // 64 bytes 
+        // 64 bytes
+        // These constants rotate file occupancies up to the 7th rank, thus making them contiguous.
+        // They have their set bits spaced by 9. This is because each successive rank (walking down
+        // from the top) requires an extra 8 (up a rank), plus one (to put the bit alonside the last).
+        // These choices reverse the occupancy order, but this is taken care of when the move array
+        // is constructed. I guess we could use constants which preserve the order (TODO?) to make things
+        // a bit simpler to follow; runtime perf. is the same, though. We can basically just derive these
+        // with pen and paper. There are no carries in the multiplication table, because the file bits
+        // are sufficiently spaced; the first carry occurs when the first bit from the occupancy is shifted
+        // over to hit the next. Below, that's a shift of three, and we hit it before the bits fall off the
+        // end. For k set bits c, c + n, c + 2n, ... c + (k-1)n, the requirement is that the spacing n >= k.
+        // In the file case, n = 8, k is just 6 (so we could do the whole non-reduced file with k = 8).
+        // For more see http://drpetric.blogspot.co.uk/2013/09/bit-gathering-via-multiplication.html
+        //  1 0 0 1 0 0 1 0 0 1 * // occ
+        //  q r s t u v w x y z   // rotator
+        // =   .. z 0 0 z 0 0 z
+        //      y 0 0 y 0 0 y
+        //    x 0 0 x 0 0 x
+        //  w 0 0 w 0 0 w   <= carry after three shifts
+        const Bitboard FILE_ROTATORS[util::BOARD_SIZE] = 
+        {
+            0x8040201008040200,
+            0x4020100804020100,
+            0x2010080402010080,
+            0x1008040201008040,
+            0x0804020100804020,
+            0x0402010080402010,
+            0x0201008040201008,
+            0x0100804020100804
+        };
+
+        //const Bitboard DIAG_A1H8_ROTATORS[] =
+        //{
+        //    0x0000000000000000, // a8 only
+        //    0x0000000000000000 // a7, b8
+        //                        // a6-c8
+        //};
+
+		extern Bitboard sixbit_file_masks[util::BOARD_SIZE];                            // 64 bytes 
         extern Bitboard rank_masks[util::BOARD_SIZE];                                   // 64 bytes
 		extern Bitboard diag_masks_a1h8[util::NUM_SQUARES];                             // 512 bytes
         extern Bitboard diag_masks_a8h1[util::NUM_SQUARES];                             // 512 bytes
@@ -621,7 +659,6 @@ namespace chess
         extern Bitboard vert_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];   // 32k
         extern Bitboard diag_moves_a1h8[util::NUM_SQUARES][util::FULL_6BITOCC + 1];     // 32k
 		extern Bitboard diag_moves_a8h1[util::NUM_SQUARES][util::FULL_6BITOCC + 1];     // 32k
-        // ==> Total for the "big" arrays is ~128k
 
         // in order to quickly disallow castling through stuff.
         const Bitboard white_kingside_castling_mask  = 0x0000000000000060;

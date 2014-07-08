@@ -47,9 +47,16 @@ namespace chess
             return pos | ((pos & moves::rank_masks[ranks::sixth]) >> 8); 
     }
 
+    Bitboard get_6bit_file_occupancy(Bitboard b, RankFile file)
+    {
+        Bitboard this_file_occ = b & moves::sixbit_file_masks[file]; // mask off everything but this file
+        return (this_file_occ * moves::FILE_ROTATORS[file]) >> 57;   // rotate onto horizontal (last rank), and then shift back down.
+    }
+
 	// Get occupancy of given file on [files::a, files::h].
 	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
-	// Non-trivial, current impl. isn't great. OINK_TODO: replace with magic multiplier implementation, which will be much faster.
+	// Replaced by magic-multiplier implementation above.
+    /*
     Bitboard get_6bit_file_occupancy(Bitboard b, RankFile file)
     {
         Bitboard eightbit = 0;
@@ -64,6 +71,7 @@ namespace chess
         }
         return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
     }
+    */
 
     Bitboard project_occupancy_from_a1h8_to6bit(Bitboard b, Square square)
     {

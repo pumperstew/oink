@@ -2,10 +2,6 @@
 #include "Position.hpp"
 #include "BasicOperations.hpp"
 
-using namespace std;
-
-//#define OINK_MOVEGEN_DIAGNOSTICS
-
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
     #include "Display.hpp"
 #endif
@@ -201,6 +197,16 @@ namespace chess
 									  & ~position.sides[side] 
                                       & ~position.kings[swap_side(side)];
 
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+            print_bitboards(
+            {
+                make_pair(position.whole_board, "whole board"),
+				make_pair(file_occ_6bit, "file_occ_6bit"),
+                make_pair(destinations, "destinations")
+            },
+            source_sq);
+#endif
+
 			generate_moves_from_destinations(destinations, move, moves, position, side);
 		}
 	}
@@ -239,12 +245,12 @@ namespace chess
 			assert(projected_a8h1_occ_6bit <= util::FULL_6BITOCC);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
-            print_bitboard(projected_a1h8_occ, "projected_a1h8_occ");
-            print_bitboard(projected_a8h1_occ, "projected_a8h1_occ");
+            print_bitboard(projected_a1h8_occ_6bit, "projected_a1h8_occ");
+            print_bitboard(projected_a8h1_occ_6bit, "projected_a8h1_occ");
 			print_bitboards(
             {
-				make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ], "a1h8 moves"),
-				make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ], "a8h1 moves"),
+				make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit], "a1h8 moves"),
+				make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit], "a8h1 moves"),
 				make_pair(destinations, "destinations"),
                 make_pair(position.sides[sides::black], "black")
             },

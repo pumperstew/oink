@@ -21,7 +21,7 @@ namespace chess
     {
         Bitboard horiz_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
         Bitboard vert_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
-        Bitboard file_masks[util::BOARD_SIZE];
+        Bitboard sixbit_file_masks[util::BOARD_SIZE];
         Bitboard rank_masks[util::BOARD_SIZE];
         Bitboard knight_moves[util::NUM_SQUARES];
         Bitboard diag_moves_a1h8[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
@@ -56,12 +56,12 @@ namespace chess
 	{
 		for (RankFile i = 0; i < util::BOARD_SIZE; ++i)  //rank or file loop
         {
-            file_masks[i] = util::nil;
+            sixbit_file_masks[i] = util::nil;
             rank_masks[i] = util::fullrank << calc_rank_shift(i);
 
-            for (RankFile j = 0; j < util::BOARD_SIZE; ++j) //rank loop for file masks
+            for (RankFile j = 1; j < util::BOARD_SIZE - 1; ++j) //rank loop for file masks
             { 
-                file_masks[i] |= util::one << rank_file_to_square(j, i);
+                sixbit_file_masks[i] |= util::one << rank_file_to_square(j, i);
             }
         }
 	}
@@ -167,14 +167,18 @@ namespace chess
 	}
 
     /*
-    Rotate a 6-bit occupancy up onto the vertical, and extend it to an 8-bit occupancy.
+    Rotate a 6-bit occupancy up onto the vertical, extend it to an 8-bit occupancy, and reverse the bits.
+    This reversal is done because when projecting an occupancy down during movegen we will produce a bit-reversed pattern.
+    Therefore we want to index the moves arrays in a bit-reversed manner -- so here we need to produce an occupancy for 
+    the reversed state to generate moves from.
     */
-	static Bitboard rotate_occupancy_to_vertical_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, RankFile desired_file)
+	static Bitboard rotate_occupancy_to_vertical_reverse_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, RankFile desired_file)
 	{
         Bitboard eightbit_rank_occ = sixbit_to_eightbit_occ(sixbit_rank_occ);
 
 		Bitboard rotated_occ = util::nil;
-        for (RankFile rank = 0; (rank < util::BOARD_SIZE) && eightbit_rank_occ; ++rank)
+        // Reverse bits by iterating backwards.
+        for (RankFile rank = util::BOARD_SIZE - 1; rank >= 0; --rank)
 		{
             Bitboard thisbit = eightbit_rank_occ & util::one;
             eightbit_rank_occ >>= 1;
@@ -422,17 +426,23 @@ namespace chess
             // Loop over all reduced 6-bit occupancy permutations on ranks/files/diagonals:
             for (Bitboard sixbit_occ = 0; sixbit_occ <= util::FULL_6BITOCC; ++sixbit_occ)
             {
-                // TODO: can we use just 5 bits? The sixth is by definition set by the square we're considering.
+                // OINK_TODO: can we use just 5 bits? The sixth is by definition set by the square we're considering.
 
                 Bitboard this_rank_sixbit_occ = sixbit_occ << calc_rank_shift(rank);
                 Bitboard right_slider_moves   = generate_right_slider_moves(this_rank_sixbit_occ, bits_on_to_right);
                 Bitboard left_slider_moves    = generate_left_slider_moves(this_rank_sixbit_occ,  bits_on_to_left);
                 horiz_slider_moves[i][sixbit_occ] = right_slider_moves | left_slider_moves;
 
-                Bitboard this_file_occupancy = rotate_occupancy_to_vertical_and_extend(sixbit_occ, file);
+                Bitboard this_file_occupancy = rotate_occupancy_to_vertical_reverse_and_extend(sixbit_occ, file);
                 Bitboard up_slider_moves     = generate_up_slider_moves(this_file_occupancy,   bits_on_to_up);
                 Bitboard down_slider_moves   = generate_down_slider_moves(this_file_occupancy, bits_on_to_down);
                 vert_slider_moves[i][sixbit_occ] = up_slider_moves | down_slider_moves;
+
+                /*print_bitboards({
+                    std::make_pair(sixbit_occ, "h"), 
+                    std::make_pair(this_file_occupancy, "f"),
+                    std::make_pair(vert_slider_moves[i][sixbit_occ], "m") 
+                });*/
 
                 Bitboard rotated_occ_a1h8 = rotate_occupancy_onto_a1h8_diagonal_and_extend(sixbit_occ, diag_start, diag_length);
                 Bitboard moves_a1h8       = generate_a1h8_diagonal_moves(rotated_occ_a1h8, bits_on_to_up_and_right, bits_on_to_down_and_left);
@@ -441,17 +451,6 @@ namespace chess
                 Bitboard rotated_occ_a8h1 = rotate_occupancy_onto_a8h1_diagonal_and_extend(sixbit_occ, diag_start, diag_length);
                 Bitboard moves_a8h1       = generate_a8h1_diagonal_moves(rotated_occ_a8h1, bits_on_to_up_and_left, bits_on_to_down_and_right);
 				diag_moves_a8h1[i][sixbit_occ] = moves_a8h1;
-
-                /*if (i == squares::e5 && occ == 0x2)
-				{
-                    print_bitboard(occ, i);
-                    print_bitboard(rotated_occ_a1h8, i);
-                    print_bitboard(moves_a1h8,       i);
-					print_bitboard(rotated_occ_a8h1, i);
-                    print_bitboard(moves_a8h1,       i);
-                    rotate_occupancy_onto_a8h1_diagonal(occ, diag_start, diag_length);
-
-				}*/
             }
         }
     }

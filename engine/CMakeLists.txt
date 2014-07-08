@@ -20,3 +20,4 @@ add_library(engine ${ENGINE_SRC})
 
 add_subdirectory(tests)
 add_subdirectory(test_harness)
+add_subdirectory(magic_gen)
