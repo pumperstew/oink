@@ -1,6 +1,12 @@
 #include "BasicOperations.hpp"
 #include "ChessConstants.hpp"
 
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+    #include "Display.hpp"
+#endif
+
+#include <cassert>
+
 #ifdef OINK_MSVC_64
     #include <intrin.h>
 
@@ -47,71 +53,30 @@ namespace chess
             return pos | ((pos & moves::rank_masks[ranks::sixth]) >> 8); 
     }
 
-    Bitboard get_6bit_file_occupancy(Bitboard b, RankFile file)
+    Bitboard project_occupancy_from_file_to6bit(Bitboard b, RankFile file)
     {
         Bitboard this_file_occ = b & moves::sixbit_file_masks[file]; // mask off everything but this file
         return (this_file_occ * moves::FILE_ROTATORS[file]) >> 57;   // rotate onto horizontal (last rank), and then shift back down.
     }
 
-	// Get occupancy of given file on [files::a, files::h].
-	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
-	// Replaced by magic-multiplier implementation above.
-    /*
-    Bitboard get_6bit_file_occupancy(Bitboard b, RankFile file)
-    {
-        Bitboard eightbit = 0;
-        Bitboard this_file_occ = b & moves::file_masks[file]; //mask off everything but this file
-        Square down_shift = file;
-        for (RankFile rank = 0; rank < util::BOARD_SIZE; ++rank)
-		{
-			eightbit |= ( ( (this_file_occ >> down_shift) & util::fullrank) //deal with one bit at a time
-				        << rank); //shift up to appropriate bit on [0, 7]
-
-            down_shift += util::BOARD_SIZE;
-        }
-        return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
-    }
-    */
-
     Bitboard project_occupancy_from_a1h8_to6bit(Bitboard b, Square square)
     {
-        Bitboard occ = 0;
-        Bitboard a1h8_diag_occ = b & moves::diag_masks_a1h8[square];
-
-        // If we intercept the first rank, and do so not on the 'a' file, then an additional shift will be
-        // required at the end, otherwise the low bits are wrong.
         RankFile rank, file;
         square_to_rank_file(square, rank, file);
-        RankFile extraInterceptShift = rank >= file ? 0 : file - rank;
+        RankFile diagonal_idx = 7 - (rank - file);
 
-        for (RankFile rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
-		{
-			occ |= (a1h8_diag_occ >> rank_file_to_square(rankOffset, 0)) // shift occupancy down to the bottom eight bits.
-				   & util::fullrank;                                     // only first rank should contribute.
-        }
-
-        occ = occ >> extraInterceptShift;
-        return (occ & util::OCC_8_TO_6_MASK) >> 1;
+        Bitboard a1h8_diag_occ = b & moves::sixbit_diag_masks_a1h8[diagonal_idx];
+        return (a1h8_diag_occ * moves::DIAG_A1H8_ROTATORS[diagonal_idx]) >> 57;
     }
 
     Bitboard project_occupancy_from_a8h1_to6bit(Bitboard b, Square square)
     {
-        Bitboard occ = 0;
-        Bitboard a8h1_diag_occ = b & moves::diag_masks_a8h1[square];
-
+        // diagonal indexing: a1, a2b1, a3b2c1, ..., a8h1, ..., g8h7, h8
         RankFile rank, file;
         square_to_rank_file(square, rank, file);
-        // If we intercept the eighth rank, and do so not on the 'a' file, then an additional shift will be
-        // required at the end, otherwise the low bits are wrong.
-        RankFile extraInterceptShift = rank + file >= util::BOARD_SIZE ? rank + file - (util::BOARD_SIZE - 1) : 0;
+        RankFile diagonal_idx = rank + file;
 
-        for (RankFile rankOffset = 0; rankOffset < util::BOARD_SIZE; ++rankOffset)
-		{
-			occ |= (a8h1_diag_occ >> rank_file_to_square(rankOffset, 0))
-                   & util::fullrank;
-        }
-
-        occ = occ >> extraInterceptShift;
-        return (occ & util::OCC_8_TO_6_MASK) >> 1;
+        Bitboard a8h1_diag_occ = b & moves::sixbit_diag_masks_a8h1[diagonal_idx];
+        return (a8h1_diag_occ * moves::DIAG_A8H1_ROTATORS[diagonal_idx]) >> 57;
     }
 }

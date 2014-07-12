@@ -193,7 +193,7 @@ namespace chess
         if (attackers & moves::horiz_slider_moves[king_square][rotated_occ])
             return true;
 
-        rotated_occ = get_6bit_file_occupancy(whole_board, king_file);
+        rotated_occ = project_occupancy_from_file_to6bit(whole_board, king_file);
         if (attackers & moves::vert_slider_moves[king_square][rotated_occ])
             return true;
 
@@ -361,52 +361,4 @@ namespace chess
         }
         return true;
     }
-
-
-	/*
-	void Position::test_rot45()
-	{
-		//generate rot45 Bitboards
-		all_rot45_a1h8 = 0;
-		Bitboard shift_bottom = 0;
-		for (int i = 0; i < util::BOARD_SIZE; ++i) { //files/ranks
-			Bitboard all_shifted_bottom = (wholeBoard & moves::diag_masks_a1h8[i]) >> i;
-			Bitboard all_shifted_left = 0, this_diag_left = 0;
-
-			Bitboard this_diag_bottom = //the diags starting from the bottom of the board
-				(all_shifted_bottom | (all_shifted_bottom >> 8) | (all_shifted_bottom >> 16)
-				| (all_shifted_bottom >> 24) | (all_shifted_bottom >> 32) 
-				| (all_shifted_bottom >> 40) | (all_shifted_bottom >> 48)
-				| (all_shifted_bottom >> 56)) & util::fullrank;
-			all_rot45_a1h8 |= (this_diag_bottom << shift_bottom);
-
-			if (i > 0) { //..and those starting from the left (dont do long diag twice)
-				all_shifted_left = (wholeBoard & moves::diag_masks_a1h8[i<<3]) >> (i<<3);
-				this_diag_left = 
-					(all_shifted_left | (all_shifted_left >> 8) | (all_shifted_left >> 16)
-					| (all_shifted_left >> 24) | (all_shifted_left >> 32) 
-					| (all_shifted_left >> 40) | (all_shifted_left >> 48)
-					| (all_shifted_left >> 56)) & util::fullrank;
-				all_rot45_a1h8 |= (this_diag_left << (shift_bottom + 28));
-			}
-			if (i == 1) {
-				//chess::print_Bitboard(moves::diag_masks_a1h8[i]);
-				//chess::print_Bitboard(all_shifted_bottom);
-				//chess::print_Bitboard(all_shifted_left);
-				//chess::print_Bitboard(this_diag_bottom);
-				//chess::print_Bitboard(this_diag_left);
-			}
-			shift_bottom += util::BOARD_SIZE - i;
-		}
-		//chess::print_Bitboard(all_rot45_a1h8);
-	}
-	//ok, so we can generate rot45 Bitboards, but doing all the above (and again for a8h1!!)
-	//every time a piece moves (i.e. everytime u gen a new pos) is gonna be horrible.
-	//=> we need to use the idea from crafty, i.e. when you move something, update all
-	//Bitboards incrementally (so you make move() a method of board, with probably special
-	//cases for captures, etc).
-	//of course if it's very inconvenient to do incremental update in a particular case,
-	//you can do a full generate. otherwise, the full rot45 gen would only be called at startup..
-
-	*/
 }

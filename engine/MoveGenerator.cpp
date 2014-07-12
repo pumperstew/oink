@@ -192,7 +192,7 @@ namespace chess
 			square_to_rank_file(source_sq, rank, file);
 
 			Bitboard rank_occ_6bit = get_6bit_rank_occupancy(position.whole_board, rank);
-			Bitboard file_occ_6bit = get_6bit_file_occupancy(position.whole_board, file);
+			Bitboard file_occ_6bit = project_occupancy_from_file_to6bit(position.whole_board, file);
 			Bitboard destinations  = (moves::horiz_slider_moves[source_sq][rank_occ_6bit] | moves::vert_slider_moves[source_sq][file_occ_6bit])
 									  & ~position.sides[side] 
                                       & ~position.kings[swap_side(side)];
@@ -200,9 +200,9 @@ namespace chess
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
             print_bitboards(
             {
-                make_pair(position.whole_board, "whole board"),
-				make_pair(file_occ_6bit, "file_occ_6bit"),
-                make_pair(destinations, "destinations")
+                std::make_pair(position.whole_board, "whole board"),
+				std::make_pair(file_occ_6bit, "file_occ_6bit"),
+                std::make_pair(destinations, "destinations")
             },
             source_sq);
 #endif
@@ -229,9 +229,9 @@ namespace chess
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
             print_bitboards(
             {
-                make_pair(position.whole_board, "whole board"),
-				make_pair(moves::diag_masks_a1h8[source_sq], "a1h8 diagmasks for source_sq"),
-                make_pair(moves::diag_masks_a8h1[source_sq], "a8h1 diagmasks for source_sq")
+                std::make_pair(position.whole_board, "whole board"),
+				std::make_pair(moves::sixbit_diag_masks_a1h8[source_sq], "a1h8 diagmasks for source_sq"),
+                std::make_pair(moves::sixbit_diag_masks_a8h1[source_sq], "a8h1 diagmasks for source_sq")
             },
             source_sq);
 #endif
@@ -249,10 +249,10 @@ namespace chess
             print_bitboard(projected_a8h1_occ_6bit, "projected_a8h1_occ");
 			print_bitboards(
             {
-				make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit], "a1h8 moves"),
-				make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit], "a8h1 moves"),
-				make_pair(destinations, "destinations"),
-                make_pair(position.sides[sides::black], "black")
+				std::make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit], "a1h8 moves"),
+				std::make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit], "a8h1 moves"),
+				std::make_pair(destinations, "destinations"),
+                std::make_pair(position.sides[sides::black], "black")
             },
             source_sq);
 #endif

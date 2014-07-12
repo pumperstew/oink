@@ -643,17 +643,56 @@ namespace chess
             0x0100804020100804
         };
 
-        //const Bitboard DIAG_A1H8_ROTATORS[] =
-        //{
-        //    0x0000000000000000, // a8 only
-        //    0x0000000000000000 // a7, b8
-        //                        // a6-c8
-        //};
+        // The logic is the same as above, but the multipliers are up files (~ commutativity).
+        // There's a change as we cross over the long diagonal, as the shifts needed are no longer
+        // directly up.
+        // The zeros represent diagonals where the occupancy doesn't affect the moves (as they're so short).
+        // These map to an occupancy key of zero.
+        const int NUM_DIAGS = 15;
+
+        // 120 bytes
+        const Bitboard DIAG_A1H8_ROTATORS[NUM_DIAGS] =
+        {
+            0x0000000000000000, // a8 only
+            0x0000000000000000, // a7, b8
+            0x0101010101010100, // a6-c8
+            0x0101010101010100, // a5-d8
+            0x0101010101010100, // a4-e8
+            0x0101010101010100, // a3-f8
+            0x0101010101010100, // a2-g8
+            0x0101010101010100, // a1-h8
+            0x8080808080808000, // b1-h7 // index 8
+            0x4040404040400000, // c1-h6 // more & more of the bottom bits disappear as they can't have an effect on the top rank
+            0x2020202020000000, // d1-h5
+            0x1010101000000000, // e1-h4
+            0x0808080808080808, // f1-h3
+            0x0000000000000000, // g1-h2
+            0x0000000000000000, // h1 only
+        };
+
+        const Bitboard DIAG_A8H1_ROTATORS[NUM_DIAGS] =
+        {
+            0x0000000000000000, // a1 only
+            0x0000000000000000, // a2, b1
+            0x0101010101010100, // a3-c1 // TODO: eliminate low bits on these (and above)
+            0x0101010101010100, // a4-d1
+            0x0101010101010100, // a5-e1
+            0x0101010101010100, // a6-f1
+            0x0101010101010100, // a7-g1
+            0x0101010101010100, // a8-h1
+            0x8080808080808080, // b8-h2
+            0x4040404040404040, // c8-h3
+            0x2020202020202020, // d8-h4
+            0x1010101010101010, // e8-h5
+            0x0808080808080808, // f8-h6
+            0x0000000000000000, // g8-h7
+            0x0000000000000000, // h8 only
+        };
 
 		extern Bitboard sixbit_file_masks[util::BOARD_SIZE];                            // 64 bytes 
         extern Bitboard rank_masks[util::BOARD_SIZE];                                   // 64 bytes
-		extern Bitboard diag_masks_a1h8[util::NUM_SQUARES];                             // 512 bytes
-        extern Bitboard diag_masks_a8h1[util::NUM_SQUARES];                             // 512 bytes
+        extern Bitboard sixbit_diag_masks_a1h8[NUM_DIAGS];                              // 120 bytes
+        extern Bitboard sixbit_diag_masks_a8h1[NUM_DIAGS];                              // 120 bytes
 		extern Bitboard knight_moves[util::NUM_SQUARES];                                // 512 bytes
         extern Bitboard horiz_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];  // 32k
         extern Bitboard vert_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];   // 32k

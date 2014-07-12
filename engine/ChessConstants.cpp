@@ -26,8 +26,8 @@ namespace chess
         Bitboard knight_moves[util::NUM_SQUARES];
         Bitboard diag_moves_a1h8[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
 		Bitboard diag_moves_a8h1[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
-        Bitboard diag_masks_a1h8[util::NUM_SQUARES];
-        Bitboard diag_masks_a8h1[util::NUM_SQUARES];
+        Bitboard sixbit_diag_masks_a1h8[NUM_DIAGS];
+        Bitboard sixbit_diag_masks_a8h1[NUM_DIAGS];
     }
 
     const int A1H8_SELECT  = 0;
@@ -65,6 +65,48 @@ namespace chess
             }
         }
 	}
+
+    static void generate_diag_masks()
+    {
+        for (RankFile i = 0; i < moves::NUM_DIAGS; ++i)
+        {
+            // Starts at top left and walks down and around.
+            RankFile diag_rank_start = 7 - i >= 0 ? 7 - i : 0;
+            RankFile diag_file_start = 7 - i >= 0 ? 0     : -(7 - i);
+
+            RankFile diag_length     = i < 8 ? i + 1 : moves::NUM_DIAGS - i;
+
+            Bitboard diag_start_bit = util::one << rank_file_to_square(diag_rank_start, diag_file_start);
+            Bitboard mask = util::nil;
+            for (int offset = 1; offset < diag_length - 1; ++offset)
+            {
+                RankFile shift = 9 * offset;
+                mask |= (diag_start_bit << shift);
+            }
+
+            sixbit_diag_masks_a1h8[i] = mask;
+        }
+
+        for (RankFile i = 0; i < moves::NUM_DIAGS; ++i)
+        {
+            // Starts at bottom left and walks up and around:
+            // a1, a2b1, a3b2c1, ..., a8h1, ..., g8h7, h8
+            RankFile diag_rank_start = 7 - i >= 0 ? i : 7;
+            RankFile diag_file_start = 7 - i >= 0 ? 0 : -(7 - i);
+
+            RankFile diag_length     = i < 8 ? i + 1 : moves::NUM_DIAGS - i;
+
+            Bitboard diag_start_bit = util::one << rank_file_to_square(diag_rank_start, diag_file_start);
+            Bitboard mask = util::nil;
+            for (int offset = 1; offset < diag_length - 1; ++offset)
+            {
+                RankFile shift = 7 * offset;
+                mask |= (diag_start_bit >> shift);
+            }
+
+            sixbit_diag_masks_a8h1[i] = mask;
+        }
+    }
 
 	static void generate_knight_moves(Square square, RankFile rank, RankFile file)
 	{
@@ -390,6 +432,8 @@ namespace chess
 
         generate_rank_file_masks();
 
+        generate_diag_masks();
+
         //===================== Generate moves=======================
         for (int i = 0; i < util::NUM_SQUARES; ++i) //loop over all squares
 		{ 
@@ -415,9 +459,6 @@ namespace chess
             Bitboard bits_on_to_down_and_left  = util::nil;
             turn_on_bits_down(cur_square_bit, rank, bits_on_to_down, bits_on_to_down_and_right, bits_on_to_down_and_left);
 
-			diag_masks_a1h8[i] = bits_on_to_up_and_right | bits_on_to_down_and_left;
-			diag_masks_a8h1[i] = bits_on_to_up_and_left  | bits_on_to_down_and_right;
-
             int diag_start[2][2]; // {a1h8, a8h1}{rank, file}
             int diag_length[2];   // {a1h8, a8h1}
 		
@@ -437,12 +478,6 @@ namespace chess
                 Bitboard up_slider_moves     = generate_up_slider_moves(this_file_occupancy,   bits_on_to_up);
                 Bitboard down_slider_moves   = generate_down_slider_moves(this_file_occupancy, bits_on_to_down);
                 vert_slider_moves[i][sixbit_occ] = up_slider_moves | down_slider_moves;
-
-                /*print_bitboards({
-                    std::make_pair(sixbit_occ, "h"), 
-                    std::make_pair(this_file_occupancy, "f"),
-                    std::make_pair(vert_slider_moves[i][sixbit_occ], "m") 
-                });*/
 
                 Bitboard rotated_occ_a1h8 = rotate_occupancy_onto_a1h8_diagonal_and_extend(sixbit_occ, diag_start, diag_length);
                 Bitboard moves_a1h8       = generate_a1h8_diagonal_moves(rotated_occ_a1h8, bits_on_to_up_and_right, bits_on_to_down_and_left);

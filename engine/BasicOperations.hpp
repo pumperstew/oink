@@ -9,7 +9,7 @@ namespace chess
     Square   get_first_occ_square(Bitboard b);
 	Bitboard get_and_clear_first_occ_square(Bitboard b, Square *sq);
 	
-	Bitboard get_6bit_file_occupancy(Bitboard b, RankFile rank);
+	Bitboard project_occupancy_from_file_to6bit(Bitboard b, RankFile rank);
 	Bitboard project_occupancy_from_a1h8_to6bit(Bitboard b, Square square);
 	Bitboard project_occupancy_from_a8h1_to6bit(Bitboard b, Square square);
 
@@ -27,10 +27,21 @@ namespace chess
     // Get occupancy of given rank on [ranks::first, ranks::eighth].
 	// Returns the six-bit occupancy (by excluding redundant bottom and top bits) in lowest six bits of return value.
     OINK_INLINE Bitboard get_6bit_rank_occupancy(Bitboard b, RankFile rank)
-    {
-        // OINK_TODO: this is not the most efficient way
-        Bitboard eightbit = (b >> (rank << 3)) & util::fullrank;
-        return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
+    {        
+        // These two produce the same asm when optimized (two shrs), despite
+        // the last form's extra gumph -- the optimizer is able to reduce it down.
+        // Note that the point about using 'int' to generate lea instructions
+        // applies too.
+        Bitboard eightbit = b >> (rank << 3);
+        return (eightbit >> 1) & util::FULL_6BITOCC;
+        //Bitboard eightbit = (b >> (rank << 3)) & util::fullrank;
+        //return (eightbit & util::OCC_8_TO_6_MASK) >> 1;
+
+        // This produces slightly different asm when optimised; it
+        // does an inc, then a single shift, rather than two shrs.
+        // BUT if we use an int for shift, it instead produces an lea, no inc, and a single shr.
+        //RankFile shift = (rank << 3) + 1; // bottom bit is not wanted, so extra shift
+        //return (b >> shift) & 0x3f;     // remove bits beyond first 6
     }
 
     OINK_INLINE bool is_square_occupied(Bitboard b, Square square)

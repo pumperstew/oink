@@ -100,6 +100,11 @@ namespace chess
         print_bitboard(b, title, squares::NO_SQUARE);
     }
 
+    void print_bitboard(const Bitboard b)
+    {
+        print_bitboard(b, "", squares::NO_SQUARE);
+    }
+
     void print_bitboard(const Bitboard b, Square highlight_square)
     {
         print_bitboard(b, nullptr, highlight_square);

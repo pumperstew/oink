@@ -57,8 +57,6 @@ namespace chess
         {
             assert(util::nil == (sides[sides::white] & sides[sides::black]));
         }
-
-        //void test_rot45();
     };
 }
 
