@@ -16,7 +16,7 @@ namespace chess
             destinations = get_and_clear_first_occ_square(destinations, &dest_square);
 			move.set_destination(dest_square);
 			move.set_captured_piece(position.squares[dest_square]);
-            moves.push_back(move);
+            moves.emplace_back(move);
         }
 	}
 
@@ -31,14 +31,14 @@ namespace chess
 			if (promoting)
 			{
 				move.set_promotion_piece(pieces::QUEENS[side]);
-				moves.push_back(move);
+				moves.emplace_back(move);
 				move.set_promotion_piece(pieces::ROOKS[side]);
-				moves.push_back(move);
+				moves.emplace_back(move);
 				move.set_promotion_piece(pieces::KNIGHTS[side]);
-				moves.push_back(move);
+				moves.emplace_back(move);
 				move.set_promotion_piece(pieces::BISHOPS[side]);
 			}
-            moves.push_back(move);
+            moves.emplace_back(move);
         }
 	}
 
@@ -51,10 +51,10 @@ namespace chess
 		    move.set_destination(dest_square);
 		    move.set_captured_piece(pieces::PAWNS[swap_side(side)]);
             move.set_en_passant(pieces::PAWNS[side]);
-            moves.push_back(move);
+            moves.emplace_back(move);
         }
 
-        // There is a maximum of one EP capture available in a given position.
+        // There is a maximum of one EP capture available in a given position for a given pawn.
         assert(!destinations);
 	}
 
@@ -128,13 +128,16 @@ namespace chess
 		move.set_piece(pieces::KNIGHTS[side]);
 
         Bitboard knights = position.knights[side];
+        Bitboard not_other_king = ~position.kings[swap_side(side)];
+        Bitboard not_my_side    = ~position.sides[side];
+
         Square source_sq;
         while (knights)
         {
             knights = get_and_clear_first_occ_square(knights, &source_sq);
 			move.set_source(source_sq);
 
-            Bitboard destinations = moves::knight_moves[source_sq] & ~position.sides[side] & ~position.kings[swap_side(side)];
+            Bitboard destinations = moves::knight_moves[source_sq] & not_my_side & not_other_king;
 			generate_moves_from_destinations(destinations, move, moves, position, side);
         }
     }
@@ -163,11 +166,9 @@ namespace chess
 			// Since for pawns we're doing captures separately, we use whole_board here. We also exclude 4th(5th) rank if 3rd(6th) is occupied.
             // Normal moves and promotions.
 			Bitboard destinations = moves::pawn_moves[side][source_sq] & ~whole_board;
-			generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side, promoting);
 
             // Normal captures
-            // OINK_TODO: why not combine captures and normal moves?
-			destinations = moves::pawn_captures[side][source_sq] & position.sides[swap_side(side)] & ~position.kings[swap_side(side)];
+			destinations |= moves::pawn_captures[side][source_sq] & position.sides[swap_side(side)] & ~position.kings[swap_side(side)];
 			generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side, promoting);
 
             // EP captures: ep_target_square is set if there is a valid target for an EP capture. 
@@ -182,30 +183,24 @@ namespace chess
 
 	static void generate_rank_file_slider_moves(MoveVector &moves, const Position &position, Side side, Move &move, Bitboard moving_piece_bitboard)
 	{
-        Square source_sq;
+        Square   source_sq;
+        RankFile rank, file;
+
+        Bitboard not_other_king = ~position.kings[swap_side(side)];
+        Bitboard not_my_side    = ~position.sides[side];
+
 		while (moving_piece_bitboard)
 		{
             moving_piece_bitboard = get_and_clear_first_occ_square(moving_piece_bitboard, &source_sq);
 			move.set_source(source_sq);
-
-			RankFile rank, file;
+			
 			square_to_rank_file(source_sq, rank, file);
 
 			Bitboard rank_occ_6bit = get_6bit_rank_occupancy(position.whole_board, rank);
 			Bitboard file_occ_6bit = project_occupancy_from_file_to6bit(position.whole_board, file);
 			Bitboard destinations  = (moves::horiz_slider_moves[source_sq][rank_occ_6bit] | moves::vert_slider_moves[source_sq][file_occ_6bit])
-									  & ~position.sides[side] 
-                                      & ~position.kings[swap_side(side)];
-
-#ifdef OINK_MOVEGEN_DIAGNOSTICS
-            print_bitboards(
-            {
-                std::make_pair(position.whole_board, "whole board"),
-				std::make_pair(file_occ_6bit, "file_occ_6bit"),
-                std::make_pair(destinations, "destinations")
-            },
-            source_sq);
-#endif
+									  & not_my_side
+                                      & not_other_king;
 
 			generate_moves_from_destinations(destinations, move, moves, position, side);
 		}
@@ -235,9 +230,11 @@ namespace chess
             },
             source_sq);
 #endif
+            RankFile rank, file;
+            square_to_rank_file(source_sq, rank, file);
 
-			Bitboard projected_a1h8_occ_6bit = project_occupancy_from_a1h8_to6bit(position.whole_board, source_sq);
-			Bitboard projected_a8h1_occ_6bit = project_occupancy_from_a8h1_to6bit(position.whole_board, source_sq);
+			Bitboard projected_a1h8_occ_6bit = project_occupancy_from_a1h8_to6bit(position.whole_board, rank, file);
+			Bitboard projected_a8h1_occ_6bit = project_occupancy_from_a8h1_to6bit(position.whole_board, rank, file);
 			Bitboard destinations = (moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit] | moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit])
 				                     & ~position.sides[side] & ~position.kings[swap_side(side)];
 
@@ -283,12 +280,12 @@ namespace chess
         MoveVector moves;
         moves.reserve(OINK_MOVE_VECTOR_INITIAL_SIZE);
 
-        generate_rook_moves(moves, position, side);
-        generate_knight_moves(moves, position, side);
+        generate_pawn_moves(moves,   position, side);
+        generate_queen_moves(moves,  position, side);
         generate_bishop_moves(moves, position, side);
-        generate_queen_moves(moves, position, side);
-        generate_king_moves(moves, position, side);
-        generate_pawn_moves(moves, position, side);
+        generate_rook_moves(moves,   position, side);
+        generate_knight_moves(moves, position, side);
+        generate_king_moves(moves,   position, side);
 
         return moves;
     }

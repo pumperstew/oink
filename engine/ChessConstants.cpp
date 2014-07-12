@@ -22,7 +22,7 @@ namespace chess
         Bitboard horiz_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
         Bitboard vert_slider_moves[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
         Bitboard sixbit_file_masks[util::BOARD_SIZE];
-        Bitboard rank_masks[util::BOARD_SIZE];
+        Bitboard eightbit_rank_masks[util::BOARD_SIZE];
         Bitboard knight_moves[util::NUM_SQUARES];
         Bitboard diag_moves_a1h8[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
 		Bitboard diag_moves_a8h1[util::NUM_SQUARES][util::FULL_6BITOCC + 1];
@@ -57,7 +57,7 @@ namespace chess
 		for (RankFile i = 0; i < util::BOARD_SIZE; ++i)  //rank or file loop
         {
             sixbit_file_masks[i] = util::nil;
-            rank_masks[i] = util::fullrank << calc_rank_shift(i);
+            eightbit_rank_masks[i] = util::fullrank << calc_rank_shift(i);
 
             for (RankFile j = 1; j < util::BOARD_SIZE - 1; ++j) //rank loop for file masks
             { 
@@ -114,39 +114,35 @@ namespace chess
 
 		knight_moves[square] = 0;
         if (rank >= 2) //2 down, 1 left; 2 down, 1 right
-            knight_moves[square] |= ((set_on_this_square >> 17) | (set_on_this_square >> 15)) & rank_masks[rank-2];
+            knight_moves[square] |= ((set_on_this_square >> 17) | (set_on_this_square >> 15)) & eightbit_rank_masks[rank-2];
         if (rank >= 1) //1 down, 2 left; 1 down, 2 right
-            knight_moves[square] |= ((set_on_this_square >> 10) | (set_on_this_square >> 6))  & rank_masks[rank-1];
+            knight_moves[square] |= ((set_on_this_square >> 10) | (set_on_this_square >> 6))  & eightbit_rank_masks[rank-1];
         if (rank <= 6) //1 up, 2 left; 1 up, 2 right                         
-            knight_moves[square] |= ((set_on_this_square << 6)  | (set_on_this_square << 10)) & rank_masks[rank+1];
+            knight_moves[square] |= ((set_on_this_square << 6)  | (set_on_this_square << 10)) & eightbit_rank_masks[rank+1];
         if (rank <= 5) //2 up, 1 left; 2 up, 1 right
-            knight_moves[square] |= ((set_on_this_square << 15) | (set_on_this_square << 17)) & rank_masks[rank+2];
+            knight_moves[square] |= ((set_on_this_square << 15) | (set_on_this_square << 17)) & eightbit_rank_masks[rank+2];
 	}
 
-	// Turn on bits to the right of the given square, which is assumed to be on the given rank/file.
-	static Bitboard turn_on_bits_to_right(Bitboard square_bit, RankFile file)
+	// Turn on bits to the right of the given square, which is assumed to be on the given rank.
+	static Bitboard turn_on_bits_to_right(Bitboard square_bit, RankFile rank)
 	{
-		Bitboard result = util::nil;
-		for (RankFile j = 1; j < util::BOARD_SIZE - file; ++j) 
-			result |= (square_bit << j);
-
-		return result;
+        return ((square_bit << 1) | (square_bit << 2) | 
+                (square_bit << 3) | (square_bit << 4) | 
+                (square_bit << 5) | (square_bit << 6) | (square_bit << 7)) & eightbit_rank_masks[rank];
 	}
 
-    // Turn on bits to the left of the given square, which is assumed to be on the given rank/file.
-	static Bitboard turn_on_bits_to_left(Bitboard square_bit, RankFile file)
+    // Turn on bits to the left of the given square, which is assumed to be on the given rank.
+	static Bitboard turn_on_bits_to_left(Bitboard square_bit, RankFile rank)
 	{
-		Bitboard result = util::nil;
-		for (RankFile j = 1; j <= file; ++j) 
-			result |= (square_bit >> j);
-
-		return result;
+        return ((square_bit >> 1) | (square_bit >> 2) | 
+                (square_bit >> 3) | (square_bit >> 4) | 
+                (square_bit >> 5) | (square_bit >> 6) | (square_bit >> 7)) & eightbit_rank_masks[rank];
 	}
 
     static void turn_on_bits_up(Bitboard square_bit, RankFile rank, Bitboard &up, Bitboard &up_right, Bitboard &up_left)
     {
-         //Generate masks with bits 1 on both diagonals intersecting the current square.
-        //Also get masks for bits_on_to_up/bitsOnToDown corresponding to bitsOnToRight/bitsOnToLeft in same loop.
+        // Generate masks with bits 1 on both diagonals intersecting the current square.
+        // Also get masks for bits_on_to_up in same loop.
         for (RankFile offset = 1; offset < util::BOARD_SIZE - rank; ++offset)
 		{
             up |= (square_bit << rank_file_to_square(offset, 0)); //<< 8, << 16, << 24, ... (shift up ranks)
@@ -155,9 +151,9 @@ namespace chess
 			//The shifts are non-intuitive, because to go *right*, we shift 9 (not 7), because a1 is LSB, so going 
 			//right on the board means shifting *left*. Basically everything is mirrored along the y-axis in bit-repro.
 			//(final masking step is necessary because we loop further than we need here, because we generate the up moves too)
-			up_right |= (square_bit << rank_file_to_square(offset, offset)) & rank_masks[rank + offset];
+			up_right |= (square_bit << rank_file_to_square(offset, offset)) & eightbit_rank_masks[rank + offset];
 			//Up and left. Same as a1h8, but file offset is negative, so shifts are (<< 7, << 14, << 21, ...)
-            up_left |= (square_bit << rank_file_to_square(offset, -offset)) & rank_masks[rank + offset];
+            up_left |= (square_bit << rank_file_to_square(offset, -offset)) & eightbit_rank_masks[rank + offset];
         }
     }
 
@@ -167,9 +163,9 @@ namespace chess
 		{
             down |= (square_bit >> (offset*util::BOARD_SIZE)); //>> 8, >> 16, >> 24, ... (shift down ranks)
 			
-            down_left |= (square_bit >> rank_file_to_square(offset, offset)) & rank_masks[rank - offset];
+            down_left |= (square_bit >> rank_file_to_square(offset, offset)) & eightbit_rank_masks[rank - offset];
 			
-            down_right |= (square_bit >> rank_file_to_square(offset, -offset)) & rank_masks[rank - offset];
+            down_right |= (square_bit >> rank_file_to_square(offset, -offset)) & eightbit_rank_masks[rank - offset];
         }
     }
 
@@ -257,7 +253,7 @@ namespace chess
     Rotate an 8-bit occupancy up onto an a1h8-oriented diagonal.
     Travel up and right from the start of the diagonal (the bottomleftmost square of it)
     */
-	static Bitboard rotate_occupancy_onto_a1h8_diagonal_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, int diag_start[2][2], int diag_length[2])
+	static Bitboard rotate_occupancy_onto_a1h8_diagonal_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, RankFile diag_start[2][2], RankFile diag_length[2])
 	{
         Bitboard eightbit_rank_occ = sixbit_to_eightbit_occ(sixbit_rank_occ);
 
@@ -308,7 +304,7 @@ namespace chess
     // * ^ * * * * * *
     // * * * * * * * *
     // * * * * * * * *
-	static Bitboard rotate_occupancy_onto_a8h1_diagonal_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, int diag_start[2][2], int diag_length[2])
+	static Bitboard rotate_occupancy_onto_a8h1_diagonal_and_extend(Bitboard sixbit_rank_occ /* in low six bits */, RankFile diag_start[2][2], RankFile diag_length[2])
 	{
         Bitboard eightbit_rank_occ = sixbit_to_eightbit_occ(sixbit_rank_occ);
 
@@ -352,7 +348,7 @@ namespace chess
 		return up_left_moves | down_right_moves;
 	}
 
-	static void generate_diagonal_vector(int rank, int file, int diag_start[2][2] /* out */, int diag_length[2] /* out */)
+	static void generate_diagonal_vector(RankFile rank, RankFile file, RankFile diag_start[2][2] /* out */, RankFile diag_length[2] /* out */)
 	{
         /*
         1. For the a1-h8 direction, there are two cases are differentiated by whether rank > file. 
@@ -446,8 +442,8 @@ namespace chess
             //============== Generate slider moves (horiz, vert, diag) ==========
 
 			//Generate masks with bits on to the right and to the left of the current square, on its rank.
-            const Bitboard bits_on_to_right = turn_on_bits_to_right(cur_square_bit, file);
-			const Bitboard bits_on_to_left  = turn_on_bits_to_left(cur_square_bit, file);
+            const Bitboard bits_on_to_right = turn_on_bits_to_right(cur_square_bit, rank);
+			const Bitboard bits_on_to_left  = turn_on_bits_to_left(cur_square_bit, rank);
 
 			Bitboard bits_on_to_up           = util::nil;
 			Bitboard bits_on_to_up_and_right = util::nil;
@@ -459,8 +455,8 @@ namespace chess
             Bitboard bits_on_to_down_and_left  = util::nil;
             turn_on_bits_down(cur_square_bit, rank, bits_on_to_down, bits_on_to_down_and_right, bits_on_to_down_and_left);
 
-            int diag_start[2][2]; // {a1h8, a8h1}{rank, file}
-            int diag_length[2];   // {a1h8, a8h1}
+            RankFile diag_start[2][2]; // {a1h8, a8h1}{rank, file}
+            RankFile diag_length[2];   // {a1h8, a8h1}
 		
 			generate_diagonal_vector(rank, file, diag_start, diag_length);
 
@@ -468,6 +464,7 @@ namespace chess
             for (Bitboard sixbit_occ = 0; sixbit_occ <= util::FULL_6BITOCC; ++sixbit_occ)
             {
                 // OINK_TODO: can we use just 5 bits? The sixth is by definition set by the square we're considering.
+                // But it might be one of the edge bits..
 
                 Bitboard this_rank_sixbit_occ = sixbit_occ << calc_rank_shift(rank);
                 Bitboard right_slider_moves   = generate_right_slider_moves(this_rank_sixbit_occ, bits_on_to_right);

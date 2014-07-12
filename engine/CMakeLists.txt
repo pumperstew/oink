@@ -4,7 +4,6 @@ set(ENGINE_SRC
     ChessConstants.hpp
     ChessConstants.cpp
     BasicOperations.hpp
-    BasicOperations.cpp
     Position.hpp
     Position.cpp
     Move.hpp

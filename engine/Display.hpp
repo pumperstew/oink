@@ -33,4 +33,4 @@ namespace chess
     void print_move(Move move, int move_num);
 }
 
-#endif
+#endif // DISPLAY_HPP

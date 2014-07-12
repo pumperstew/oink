@@ -13,11 +13,11 @@ namespace chess
 
 	void Position::clear()
 	{
-        memset(piece_bbs, util::nil, sizeof(piece_bbs));
-        memset(sides, util::nil, sizeof(sides));
-        memset(squares, pieces::NONE, sizeof(squares));
+        memset(piece_bbs, util::nil,    sizeof(piece_bbs));
+        memset(sides,     util::nil,    sizeof(sides));
+        memset(squares,   pieces::NONE, sizeof(squares));
 
-        castling_rights = sides::CASTLING_RIGHTS_ANY_WHITE | sides::CASTLING_RIGHTS_ANY_BLACK;
+        castling_rights  = sides::CASTLING_RIGHTS_ANY_WHITE | sides::CASTLING_RIGHTS_ANY_BLACK;
         ep_target_square = squares::NO_SQUARE;
         fifty_move_count = 0;
 	}
@@ -172,6 +172,7 @@ namespace chess
     bool Position::detect_check(Side king_side) const
     {
         Square king_square = get_first_occ_square(kings[king_side]);
+
         RankFile king_rank, king_file;
         square_to_rank_file(king_square, king_rank, king_file);
             
@@ -199,11 +200,11 @@ namespace chess
 
         // Diagonal sliders
         attackers = queens[other_side] | bishops[other_side];
-        rotated_occ = project_occupancy_from_a1h8_to6bit(whole_board, king_square);
+        rotated_occ = project_occupancy_from_a1h8_to6bit(whole_board, king_rank, king_file);
         if (attackers & moves::diag_moves_a1h8[king_square][rotated_occ])
             return true;
 
-        rotated_occ = project_occupancy_from_a8h1_to6bit(whole_board, king_square);
+        rotated_occ = project_occupancy_from_a8h1_to6bit(whole_board, king_rank, king_file);
         if (attackers & moves::diag_moves_a8h1[king_square][rotated_occ])
             return true;
 

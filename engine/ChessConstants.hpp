@@ -61,6 +61,7 @@ namespace chess
 
 	namespace pieces
 	{
+        // The ordering is relied upon, do not change!
 		const Piece NONE         = 0;
 		const Piece WHITE_PAWN   = 0x1;
         const Piece BLACK_PAWN   = 0x2;
@@ -655,17 +656,17 @@ namespace chess
         {
             0x0000000000000000, // a8 only
             0x0000000000000000, // a7, b8
-            0x0101010101010100, // a6-c8
-            0x0101010101010100, // a5-d8
-            0x0101010101010100, // a4-e8
-            0x0101010101010100, // a3-f8
-            0x0101010101010100, // a2-g8
-            0x0101010101010100, // a1-h8
-            0x8080808080808000, // b1-h7 // index 8
-            0x4040404040400000, // c1-h6 // more & more of the bottom bits disappear as they can't have an effect on the top rank
-            0x2020202020000000, // d1-h5
-            0x1010101000000000, // e1-h4
-            0x0808080808080808, // f1-h3
+            0x0000000000000100, // a6-c8
+            0x0000000000010100, // a5-d8
+            0x0000000001010100, // a4-e8
+            0x0000000101010100, // a3-f8
+            0x0000010101010100, // a2-g8
+            0x0001010101010100, // a1-h8
+            0x0000808080808000, // b1-h7 // index 8
+            0x0000404040400000, // c1-h6 // more & more of the bottom bits disappear as they can't have an effect on the top rank
+            0x0000202020000000, // d1-h5
+            0x0000101000000000, // e1-h4 // f2 => b8 == 44
+            0x0000080000000000, // f1-h3 // g2 => b8 == 43
             0x0000000000000000, // g1-h2
             0x0000000000000000, // h1 only
         };
@@ -674,23 +675,23 @@ namespace chess
         {
             0x0000000000000000, // a1 only
             0x0000000000000000, // a2, b1
-            0x0101010101010100, // a3-c1 // TODO: eliminate low bits on these (and above)
-            0x0101010101010100, // a4-d1
-            0x0101010101010100, // a5-e1
-            0x0101010101010100, // a6-f1
-            0x0101010101010100, // a7-g1
-            0x0101010101010100, // a8-h1
-            0x8080808080808080, // b8-h2
-            0x4040404040404040, // c8-h3
-            0x2020202020202020, // d8-h4
-            0x1010101010101010, // e8-h5
-            0x0808080808080808, // f8-h6
+            0x0001000000000000, // a3-c1
+            0x0001010000000000, // a4-d1
+            0x0001010100000000, // a5-e1
+            0x0001010101000000, // a6-f1
+            0x0001010101010000, // a7-g1
+            0x0001010101010100, // a8-h1
+            0x0000008080808080, // b8-h2
+            0x0000000040404040, // c8-h3
+            0x0000000000202020, // d8-h4
+            0x0000000000001010, // e8-h5
+            0x0000000000000008, // f8-h6
             0x0000000000000000, // g8-h7
             0x0000000000000000, // h8 only
         };
 
 		extern Bitboard sixbit_file_masks[util::BOARD_SIZE];                            // 64 bytes 
-        extern Bitboard rank_masks[util::BOARD_SIZE];                                   // 64 bytes
+        extern Bitboard eightbit_rank_masks[util::BOARD_SIZE];                          // 64 bytes
         extern Bitboard sixbit_diag_masks_a1h8[NUM_DIAGS];                              // 120 bytes
         extern Bitboard sixbit_diag_masks_a8h1[NUM_DIAGS];                              // 120 bytes
 		extern Bitboard knight_moves[util::NUM_SQUARES];                                // 512 bytes
@@ -706,4 +707,5 @@ namespace chess
         const Bitboard black_queenside_castling_mask = 0x0e00000000000000;
     }
 }
-#endif
+
+#endif // CHESSCONSTANTS_HPP

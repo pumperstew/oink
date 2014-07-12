@@ -26,7 +26,7 @@ namespace chess
 	class Move
 	{
     public:
-		typedef unsigned int MoveData;
+		typedef uint32_t MoveData;
 
     private:
 	    static const MoveData ALLBITS = 0xffffffff;
@@ -49,7 +49,7 @@ namespace chess
     public:
 		MoveData data;
 
-		Move() { data = 0; }
+		OINK_INLINE Move() { data = 0; }
 
         OINK_INLINE Square get_source() const
 	    {
@@ -78,23 +78,20 @@ namespace chess
 
 	    OINK_INLINE Piece get_promotion_piece() const
 	    {
-		    unsigned int special = get_special();
-            return (special == pieces::WHITE_KING || special == pieces::BLACK_KING || special == pieces::WHITE_PAWN || special == pieces::BLACK_PAWN) ?
-                    pieces::NONE : special;
+		    Piece special = get_special();
+            return (special > pieces::NONE && special <= pieces::BLACK_PAWN) ? pieces::NONE : special;
 	    }
 
         OINK_INLINE Piece get_castling() const
 	    {
-		    unsigned int special = get_special();
-            return (special == pieces::WHITE_KING || special == pieces::BLACK_KING) ?
-                    special : pieces::NONE;
+		    Piece special = get_special();
+            return (special == pieces::WHITE_KING || special == pieces::BLACK_KING) ? special : pieces::NONE;
 	    }
 
         OINK_INLINE Piece get_en_passant() const
 	    {
-		    unsigned int special = get_special();
-            return (special == pieces::WHITE_PAWN || special == pieces::BLACK_PAWN) ?
-                    special : pieces::NONE;
+		    Piece special = get_special();
+            return (special == pieces::WHITE_PAWN || special == pieces::BLACK_PAWN) ? special : pieces::NONE;
 	    }
 
 	    OINK_INLINE void set_source(Square square)

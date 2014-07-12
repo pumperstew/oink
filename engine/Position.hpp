@@ -34,7 +34,6 @@ namespace chess
         Bitboard sides[2];
 		Piece    squares[util::NUM_SQUARES];
         Square   ep_target_square;
-        //Bitboard all_rot45_a1h8, all_rot45_a8h1;
         char     fifty_move_count;
         unsigned char castling_rights; // bitmask
 

@@ -40,12 +40,13 @@ public:
     }
 };
 
-static uint64_t perft_fast(int depth, Position &pos, Side side)
+static uint64_t perft_bench(int depth, Position &pos, Side side)
 {
     if (depth == 0)
         return 1;
- 
+
     MoveVector moves = generate_all_moves(pos, side);
+
     size_t count = moves.size();
     uint64_t leaves = 0;
     for (int i = 0; i < count; ++i)
@@ -53,14 +54,14 @@ static uint64_t perft_fast(int depth, Position &pos, Side side)
         Position backup(pos);
         if (pos.make_move(moves[i]))
         {
-            leaves += perft_fast(depth - 1, pos, swap_side(side));
+            leaves += perft_bench(depth - 1, pos, swap_side(side));
             pos = backup; // undo
         }
     }
     return leaves;
 }
 
-static uint64_t perft(int depth, Position &pos, Side side)
+static uint64_t perft_correctness(int depth, Position &pos, Side side)
 {
     uint64_t leaves = 0;
  
@@ -85,7 +86,7 @@ static uint64_t perft(int depth, Position &pos, Side side)
                 if (pos.detect_check(swap_side(side)))              ++perft_check_count;
             }
 
-            leaves += perft(depth - 1, pos, swap_side(side));
+            leaves += perft_correctness(depth - 1, pos, swap_side(side));
             pos = backup; // undo
         }
     }
@@ -99,7 +100,7 @@ static uint64_t perft(int depth, Position &pos, Side side)
     return leaves;
 }
 
-static void perft_driver(const int depth)
+static void perft_driver_correctness(const int depth)
 {
     Position pos;
     pos.setup_starting_position();
@@ -112,7 +113,7 @@ static void perft_driver(const int depth)
     perft_mate_count    = 0;
 
     StopWatch watch;
-    uint64_t node_count = perft(depth, pos, sides::white);
+    uint64_t node_count = perft_correctness(depth, pos, sides::white);
 
     int64_t elapsed = watch.elapsed();
     uint64_t nps = elapsed ? (uint64_t)(1000 * node_count / elapsed) : 0;
@@ -139,13 +140,13 @@ static void perft_driver(const int depth)
         elapsed / 1000., );*/
 }
 
-static void perft_driver_fast(const int depth)
+static void perft_driver_bench(const int depth)
 {
     Position pos;
     pos.setup_starting_position();
 
     StopWatch watch;
-    uint64_t node_count = perft_fast(depth, pos, sides::white);
+    uint64_t node_count = perft_bench(depth, pos, sides::white);
 
     int64_t elapsed = watch.elapsed();
     uint64_t nps = elapsed ? (uint64_t)(1000 * node_count / elapsed) : 0;
@@ -223,12 +224,14 @@ int main(int argc, char **argv)
 {
     constants_initialize();
 
-    /*perft_driver_fast(6);
-    return 0;*/
+    perft_driver_bench(6);
+    perft_driver_bench(6);
+    perft_driver_bench(6);
+    return 0;
 
     for (int depth = 1; depth < 7; ++depth)
     {
-        perft_driver(depth);
+        perft_driver_correctness(depth);
     }
     return 0;
 
