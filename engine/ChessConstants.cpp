@@ -1,10 +1,6 @@
 #include "ChessConstants.hpp"
 #include "BasicOperations.hpp"
 
-#ifdef OINK_MOVEGEN_DIAGNOSTICS
-    #include "Display.hpp"
-#endif
-
 #include <cassert>
 
 namespace chess

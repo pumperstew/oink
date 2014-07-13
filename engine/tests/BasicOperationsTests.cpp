@@ -1,6 +1,6 @@
+#include <engine/BasicOperations.hpp>
+
 #include <gtest/gtest.h>
-#include "../BasicOperations.hpp"
-#include "../ChessConstants.hpp"
 
 using namespace chess;
 using namespace std;

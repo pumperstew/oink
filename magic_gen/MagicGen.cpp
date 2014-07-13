@@ -1,7 +1,12 @@
-#include "../Position.hpp"
-#include "../BasicOperations.hpp"
-#include "../ChessConstants.hpp"
-#include "../Display.hpp"
+#include <engine/Position.hpp>
+#include <engine/BasicOperations.hpp>
+
+#define OINK_MOVEGEN_DIAGNOSTICS
+
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+    #include <display/console/ConsoleDisplay.hpp>
+#endif
+
 
 #include <set>
 #include <random>

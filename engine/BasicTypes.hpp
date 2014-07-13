@@ -5,8 +5,6 @@
 
 #define OINK_INLINE inline
 
-//#define OINK_MOVEGEN_DIAGNOSTICS
-
 #ifdef _MSC_VER
     #ifdef _WIN64
         #define OINK_MSVC_64
@@ -24,13 +22,18 @@ namespace chess
     typedef char          Square;
     typedef char          RankFile;
     typedef char          Side;
+    typedef char          PieceValue;
 #else
 	typedef unsigned char Piece; // This should be narrow, as we have 64 of them in a Position.
     typedef int_fast32_t  Square;
     typedef char          SquareLeastT;
     typedef int_fast32_t  RankFile;
     typedef int_fast32_t  Side;
+    typedef int_fast32_t  PieceValue;
 #endif
+
+    typedef int PosEvaluation;
+    typedef double PosEvaluationFrac;
 }
 
 #endif // BASICTYPES_HPP

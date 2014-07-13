@@ -1,11 +1,22 @@
-#include "../Position.hpp"
-#include "../Display.hpp"
-#include "../MoveGenerator.hpp"
+#include "OinkTestHarness.hpp"
+
+#include <engine/Position.hpp>
+#include <engine/BasicOperations.hpp>
+#include <engine/MoveGenerator.hpp>
+#include <engine/Evaluator.hpp>
+#include <engine/Search.hpp>
+
+#define OINK_MOVEGEN_DIAGNOSTICS
+
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+    #include <display/console/ConsoleDisplay.hpp>
+#endif
 
 #include <thread>
 #include <chrono>
 #include <random>
 #include <iostream>
+#include <fstream>
 
 using namespace chess;
 using namespace std;
@@ -47,16 +58,17 @@ static uint64_t perft_bench(int depth, Position &pos, Side side)
 
     MoveVector moves = generate_all_moves(pos, side);
 
-    size_t count = moves.size();
     uint64_t leaves = 0;
-    for (int i = 0; i < count; ++i)
+    size_t num_moves = moves.size();
+    Position backup(pos);
+
+    for (size_t i = 0; i < num_moves; ++i)
     {
-        Position backup(pos);
         if (pos.make_move(moves[i]))
         {
             leaves += perft_bench(depth - 1, pos, swap_side(side));
-            pos = backup; // undo
         }
+        pos = backup; // undo move
     }
     return leaves;
 }
@@ -70,9 +82,11 @@ static uint64_t perft_correctness(int depth, Position &pos, Side side)
  
     MoveVector moves = generate_all_moves(pos, side);
     bool any = false;
-    for (int i = 0; i < moves.size(); ++i)
+    size_t num_moves = moves.size();
+    Position backup(pos);
+
+    for (size_t i = 0; i < num_moves; ++i)
     {
-        Position backup(pos);
         if (pos.make_move(moves[i]))
         {
             any = true;
@@ -87,8 +101,8 @@ static uint64_t perft_correctness(int depth, Position &pos, Side side)
             }
 
             leaves += perft_correctness(depth - 1, pos, swap_side(side));
-            pos = backup; // undo
         }
+        pos = backup; // undo move
     }
 
     // OINK_TODO: we detect this too late, so the results are for perft(n+1)
@@ -165,49 +179,65 @@ static void perft_driver_bench(const int depth)
 
 static void play_random()
 {
+    FILE *pgn_file = fopen("foo.pgn", "w");
+
     Position pos;
     pos.setup_starting_position();
     Side side = sides::white;
     
     std::random_device rand_dev;
-    std::mt19937 rand_engine(10); //rand_dev());
+    std::mt19937 rand_engine(10);//rand_dev());
     
-    print_bitboard(pos.bishops[sides::white], "wb");
-
     int move_num = 1;
 
-    while (pos.fifty_move_count < 100)
+    auto moves = generate_all_moves(pos, side);
+    int opener = std::uniform_int_distribution<int>(0, (int)moves.size() - 1)(rand_engine);
+    pos.make_move(moves[opener]);
+    print_move(moves[opener], move_num, side, util::NORMAL, 0);
+    pgn_out_move(pgn_file, moves[opener], move_num, side, util::NORMAL);
+    print_position(pos);
+    side = sides::black;
+
+    while (1)
     {
-        auto moves = generate_all_moves(pos, side);
-        if (moves.empty())
+        MoveAndEval result = alpha_beta(side, pos, 3, -2*evals::MATE_SCORE, 2*evals::MATE_SCORE);
+        MoveAndEval result2 = minimax(side, pos, 3);
+
+        if (result.best_eval      != result2.best_eval)
+            printf("eval mismatch\n");
+        if (result.best_move.data != result2.best_move.data)
+            printf("move mismatch\n");
+
+        if (!result.best_move.data)
         {
-            printf("\n****** ERROR ****** : should have been mate or stalemate last move!\n");
+            printf("\n****** ERROR: NO LEGAL MOVES ****** : should have been mate or stalemate last move!\n");
+            assert(false);
             break;
         }
 
-        int tried = 0;
-        while (tried < moves.size())
-        {
-            std::uniform_int_distribution<int> rand_dist(0, (int)moves.size() - 1);
-            int move_index = rand_dist(rand_engine);
+        pos.make_move(result.best_move);
 
-            if (pos.make_move(moves[move_index]))
-            {
-                print_move(moves[move_index], move_num);
-                print_position(pos);
-                break;
-            }
-            ++tried;
-        }
-            
-        if (tried == moves.size())
+        auto pos_type = test_position_type(pos, swap_side(side));
+        print_move(result.best_move, move_num, side, pos_type, (side == sides::black ? -1 : 1) * result.best_eval / 100.0);
+        pgn_out_move(pgn_file, result.best_move, move_num, side, pos_type);
+        print_position(pos);
+
+        if (pos_type == util::MATE || pos_type == util::STALEMATE || pos_type == util::INSUFFICIENT_MATERIAL)
         {
-            if (pos.detect_check(side))
-                printf("\nMate?\n");
-            else
-                printf("\nStalemate?\n");
             break;
         }
+        else if (pos.fifty_move_count >= 100)
+        {
+            printf("\n1/2 - 1/2 (Fifty-move rule)\n");
+            break;
+        }
+        else
+        {
+            printf("\nMaterial: %+d\n", pos.material / 100);
+        }
+
+        assert(pos.kings[0]);
+        assert(pos.kings[1]);
 
         side = swap_side(side);
 
@@ -216,6 +246,7 @@ static void play_random()
             move_num++;
         }
 
+        fflush(pgn_file);
         //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     }
 }
@@ -224,7 +255,9 @@ int main(int argc, char **argv)
 {
     constants_initialize();
 
-    perft_driver_bench(6);
+    play_random();
+    return 0;
+
     perft_driver_bench(6);
     perft_driver_bench(6);
     return 0;
@@ -233,8 +266,5 @@ int main(int argc, char **argv)
     {
         perft_driver_correctness(depth);
     }
-    return 0;
-
-    play_random();
     return 0;
 }

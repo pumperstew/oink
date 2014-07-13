@@ -33,6 +33,15 @@ namespace chess
         const Bitboard OCC_8_TO_6_MASK = 0x000000000000007e;
         const Square   NUM_SQUARES  = 64;
         const RankFile BOARD_SIZE   = 8;
+
+        enum PositionType
+        {
+            NORMAL,
+            CHECK,
+            MATE, 
+            STALEMATE,
+            INSUFFICIENT_MATERIAL,
+        };
     }
 
 	namespace ranks
@@ -85,6 +94,25 @@ namespace chess
 
 		extern char symbols[15];
 	}
+
+    namespace evals
+    {
+        const PosEvaluation MATE_SCORE = 1000000;
+        const PosEvaluation DRAW_SCORE = 0;
+        const PosEvaluation PAWN_CAPTURE_VALUES[2] = { -100, +100 };
+        const PosEvaluation PIECE_CAPTURE_VALUES[]
+        {
+            0, 
+            -100, +100,
+            -MATE_SCORE, +MATE_SCORE, // King
+            -500, 500,
+            -300, 300,
+            -300, 300,
+            -900, 900,
+        };
+
+        const PosEvaluation CHECK_BIAS = 50;
+    }
 
 	namespace squares
 	{

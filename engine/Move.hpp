@@ -79,7 +79,8 @@ namespace chess
 	    OINK_INLINE Piece get_promotion_piece() const
 	    {
 		    Piece special = get_special();
-            return (special > pieces::NONE && special <= pieces::BLACK_PAWN) ? pieces::NONE : special;
+            return (special == pieces::WHITE_KING || special == pieces::BLACK_KING || special == pieces::WHITE_PAWN || special == pieces::BLACK_PAWN) ?
+                    pieces::NONE : special;
 	    }
 
         OINK_INLINE Piece get_castling() const

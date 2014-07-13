@@ -1,9 +1,7 @@
-#ifndef DISPLAY_HPP
-#define DISPLAY_HPP
+#ifndef CONSOLE_DISPLAY_HPP
+#define CONSOLE_DISPLAY_HPP
 
-#include "BasicTypes.hpp"
-#include "ChessConstants.hpp"
-#include "Move.hpp"
+#include <engine/ChessConstants.hpp>
 
 #include <vector>
 #include <utility>
@@ -13,6 +11,7 @@
 namespace chess
 {
     class Position;
+    class Move;
 
 	void print_position(const Position &position);
 
@@ -30,7 +29,8 @@ namespace chess
         print_bitboards(bbs_with_names, highlight_square);
     }
 
-    void print_move(Move move, int move_num);
+    void print_move(Move move, int move_num, Side side, util::PositionType pos_characteristics, PosEvaluationFrac eval);
+    void pgn_out_move(FILE *file, Move move, int move_num, Side side, util::PositionType pos_characteristics);
 }
 
-#endif // DISPLAY_HPP
+#endif // CONSOLE_DISPLAY_HPP

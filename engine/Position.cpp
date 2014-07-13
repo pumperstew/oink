@@ -1,9 +1,5 @@
 #include "Position.hpp"
 
-#ifdef OINK_MOVEGEN_DIAGNOSTICS
-    #include "Display.hpp"
-#endif
-
 namespace chess
 {
 	Position::Position()
@@ -20,6 +16,7 @@ namespace chess
         castling_rights  = sides::CASTLING_RIGHTS_ANY_WHITE | sides::CASTLING_RIGHTS_ANY_BLACK;
         ep_target_square = squares::NO_SQUARE;
         fifty_move_count = 0;
+        material         = 0;
 	}
 
 	void Position::setup_starting_position()
@@ -27,6 +24,7 @@ namespace chess
         castling_rights  = sides::CASTLING_RIGHTS_ANY_WHITE | sides::CASTLING_RIGHTS_ANY_BLACK;
         ep_target_square = squares::NO_SQUARE;
         fifty_move_count = 0;
+        material         = 0;
 
 		kings[sides::white]   = starting::white_king;
 		kings[sides::black]   = starting::black_king;
@@ -150,6 +148,8 @@ namespace chess
             sides[swap_side(side_capturing)]    ^= dest_bitboard;
             whole_board                         ^= source_bitboard; // Not source_and_dest_bitboard, as dest is occupied before and after.
             fifty_move_count = 0;
+            // e.g. if white's moving, then material goes up by the value of the piece he captured (positive)
+            material += evals::PIECE_CAPTURE_VALUES[captured_piece]; 
 
             // Anything captured on the corner squares must remove castling rights, because either the rook has already moved, or we're capturing it.
             // h1 => map to CASTLING_RIGHTS_WHITE_KINGSIDE, etc.
@@ -184,7 +184,7 @@ namespace chess
         // Similar for knights
         if (knights[other_side] & moves::knight_moves[king_square])
             return true;
-        // Kings too
+        // Kings too (pseudo-check, i.e. for the purposes of legality checking).
         if (kings[other_side] & moves::king_moves[king_square])
             return true;
 
@@ -213,21 +213,16 @@ namespace chess
 
     bool Position::make_move(Move move)
     {
-        Position backup = Position(*this);
-
-        Piece moving_piece   = move.get_piece();
-        Side  side           = get_piece_side(moving_piece);
-        Piece captured_piece = move.get_captured_piece();
-
-        Square source        = move.get_source();
-        RankFile source_rank = square_to_rank(source);
-
-        Square   dest      = move.get_destination();
-        RankFile dest_rank = square_to_rank(dest);
-
-        Bitboard source_bitboard          = util::one << source;
-        Bitboard dest_bitboard            = util::one << dest;
-        Bitboard source_and_dest_bitboard = source_bitboard | dest_bitboard;
+        const Piece    moving_piece             = move.get_piece();
+        const Piece    captured_piece           = move.get_captured_piece();
+        const Square   source                   = move.get_source();
+        const Square   dest                     = move.get_destination();
+        const Side     side                     = get_piece_side(moving_piece);
+        const RankFile source_rank              = square_to_rank(source);
+        const RankFile dest_rank                = square_to_rank(dest);
+        const Bitboard source_bitboard          = util::one << source;
+        const Bitboard dest_bitboard            = util::one << dest;
+        const Bitboard source_and_dest_bitboard = source_bitboard | dest_bitboard;
 
         switch (moving_piece)
         {
@@ -249,7 +244,6 @@ namespace chess
                     print_bitboard(dest_bitboard, "dest");
                     print_bitboard(util::one << backup.ep_target_square, "old ep sq");
                     print_position(*this);
-                    print_position(backup);
                 }
 #endif
                 Bitboard pawn_captured_ep_mask    = util::one << (dest - sides::NEXT_RANK_OFFSET[side]);  // the square below or above dest. Less shift for white, more for black
@@ -257,6 +251,8 @@ namespace chess
                 sides[swap_side(side)]           ^= pawn_captured_ep_mask;
                 squares[dest - sides::NEXT_RANK_OFFSET[side]] = pieces::NONE;
                 whole_board                      ^= (source_and_dest_bitboard | pawn_captured_ep_mask);
+
+                material -= evals::PAWN_CAPTURE_VALUES[side];
             }
             else
             {
@@ -265,9 +261,12 @@ namespace chess
                 Piece promotion_piece = move.get_promotion_piece();
                 if (promotion_piece != pieces::NONE)
                 {
-                    pawns[sides::white]         ^= dest_bitboard; // Turn back off pawn at dest
+                    pawns[side]                 ^= dest_bitboard; // Turn back off pawn at dest
                     piece_bbs[promotion_piece]  ^= dest_bitboard; // Turn on new piece at dest
                     squares[dest]               = promotion_piece;
+
+                    material -= evals::PIECE_CAPTURE_VALUES[promotion_piece]; // "-=", as we're adding it
+                    material += evals::PAWN_CAPTURE_VALUES[side]; // we "lost" the pawn.
                 }
             }
 
@@ -354,12 +353,7 @@ namespace chess
             break;
         }
 
-        // If we're in check, undo the move
-        if (detect_check(side))
-        {
-            *this = backup;
-            return false;
-        }
-        return true;
+        // If we're in check, it wasn't legal
+        return !detect_check(side);
     }
 }

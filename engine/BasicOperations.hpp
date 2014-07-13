@@ -4,10 +4,6 @@
 #include "BasicTypes.hpp"
 #include "ChessConstants.hpp"
 
-#ifdef OINK_MOVEGEN_DIAGNOSTICS
-    #include "Display.hpp"
-#endif
-
 #include <cassert>
 
 #ifdef OINK_MSVC_64

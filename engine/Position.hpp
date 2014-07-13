@@ -34,8 +34,9 @@ namespace chess
         Bitboard sides[2];
 		Piece    squares[util::NUM_SQUARES];
         Square   ep_target_square;
-        char     fifty_move_count;
+        unsigned char fifty_move_count;
         unsigned char castling_rights; // bitmask
+        PosEvaluation material;
 
         Position();
 

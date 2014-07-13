@@ -5,4 +5,4 @@ set(OINK_TEST_HARNESS_SRC
 )
 
 add_executable(OinkTestHarness ${OINK_TEST_HARNESS_SRC})
-target_link_libraries(OinkTestHarness engine)
+target_link_libraries(OinkTestHarness engine console_display)

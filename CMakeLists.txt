@@ -32,4 +32,9 @@ message("${GTEST_LIBRARY_DIR}")
 
 enable_testing()
 
+include_directories(.)
+
 add_subdirectory(engine)
+add_subdirectory(display)
+add_subdirectory(test_harness)
+add_subdirectory(magic_gen)

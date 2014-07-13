@@ -9,8 +9,10 @@ set(ENGINE_SRC
     Move.hpp
     MoveGenerator.hpp
     MoveGenerator.cpp
-    Display.hpp
-    Display.cpp
+	Evaluator.hpp
+	Evaluator.cpp
+	Search.hpp
+	Search.cpp
 )
 
 
@@ -18,5 +20,3 @@ add_library(engine ${ENGINE_SRC})
 # target_compile_options(engine PRIVATE $<$<CONFIG:Release>:/arch:AVX>)
 
 add_subdirectory(tests)
-add_subdirectory(test_harness)
-add_subdirectory(magic_gen)

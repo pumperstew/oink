@@ -1,6 +1,7 @@
+#include <engine/Position.hpp>
+#include <display/console/ConsoleDisplay.hpp>
+
 #include <gtest/gtest.h>
-#include "../Position.hpp"
-#include "../Display.hpp"
 
 using namespace chess;
 
