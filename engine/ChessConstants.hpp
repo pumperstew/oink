@@ -3,6 +3,8 @@
 
 #include "BasicTypes.hpp"
 
+#include <climits>
+
 namespace chess
 {
     void constants_initialize();
@@ -97,6 +99,7 @@ namespace chess
 
     namespace evals
     {
+        const PosEvaluation INITIAL_SEARCH_VALUE = INT_MIN;
         const PosEvaluation MATE_SCORE = 1000000;
         const PosEvaluation DRAW_SCORE = 0;
         const PosEvaluation PAWN_CAPTURE_VALUES[2] = { -100, +100 };
