@@ -165,6 +165,7 @@ namespace chess
             pawns = get_and_clear_first_occ_square(pawns, &source_sq);
 			move.set_source(source_sq);
             move.set_en_passant(pieces::NONE);
+            move.set_promotion_piece(pieces::NONE);
 
 			RankFile rank = square_to_rank(source_sq);
 			bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
