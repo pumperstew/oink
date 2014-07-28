@@ -23,92 +23,64 @@ protected:
 	}
 };
 
-TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThereAreNoKnights)
-{
-    MoveVector moves;
-	generate_knight_moves(moves, position, sides::white);
-	ASSERT_TRUE(moves.empty());
-}
-
-TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThereAreNoKnights_OfTheSpecifiedSide)
-{
-	position.knights[sides::black] = starting::black_knights;
-	position.update_sides();
-
-    MoveVector moves;
-	generate_knight_moves(moves, position, sides::white);
-
-	ASSERT_TRUE(moves.empty());
-}
-
 void SetWhiteKnightAt(Position &position, Square square)
 {
-	position.knights[sides::white] |= squarebits::indexed[square];
+    position.place_piece(pieces::WHITE_KNIGHT, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_KNIGHT;
 }
 
 void SetWhiteKingAt(Position &position, Square square)
 {
-	position.kings[sides::white] |= squarebits::indexed[square];
+    position.place_piece(pieces::WHITE_KING, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_KING;
 }
 
 void SetBlackKingAt(Position &position, Square square)
 {
-	position.kings[sides::black] |= squarebits::indexed[square];
+    position.place_piece(pieces::BLACK_KING, square);
 	position.update_sides();
-	position.squares[square] = pieces::BLACK_KING;
 }
 
 void SetWhitePawnAt(Position &position, Square square)
 {
-	position.pawns[sides::white] |= squarebits::indexed[square];
+    position.place_piece(pieces::WHITE_PAWN, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_PAWN;
 }
 
 void SetBlackPawnAt(Position &position, Square square)
 {
-	position.pawns[sides::black] |= squarebits::indexed[square];
+    position.place_piece(pieces::BLACK_PAWN, square);
 	position.update_sides();
-	position.squares[square] = pieces::BLACK_PAWN;
 }
 
 void SetWhiteRookAt(Position &position, Square square)
 {
-	position.rooks[sides::white] |= squarebits::indexed[square];
+	position.place_piece(pieces::WHITE_ROOK, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_ROOK;
 }
 
 void SetBlackRookAt(Position &position, Square square)
 {
-	position.rooks[sides::black] |= squarebits::indexed[square];
+	position.place_piece(pieces::BLACK_ROOK, square);
 	position.update_sides();
-	position.squares[square] = pieces::BLACK_ROOK;
 }
 
 void SetWhiteBishopAt(Position &position, Square square)
 {
-	position.bishops[sides::white] |= squarebits::indexed[square];
+	position.place_piece(pieces::WHITE_BISHOP, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_BISHOP;
 }
 
 void SetBlackBishopAt(Position &position, Square square)
 {
-	position.bishops[sides::black] |= squarebits::indexed[square];
+	position.place_piece(pieces::BLACK_BISHOP, square);
 	position.update_sides();
-	position.squares[square] = pieces::BLACK_BISHOP;
 }
 
 void SetWhiteQueenAt(Position &position, Square square)
 {
-	position.queens[sides::white] |= squarebits::indexed[square];
+    position.place_piece(pieces::WHITE_QUEEN, square);
 	position.update_sides();
-	position.squares[square] = pieces::WHITE_QUEEN;
 }
 
 void CheckMoveIsInList(const MoveVector &moves, Square source, Square destination, Piece piece, Piece captured, Piece promotion = pieces::NONE, Piece castling = pieces::NONE, Piece enPassant = pieces::NONE)
@@ -140,6 +112,24 @@ void CheckMovesDestinationVarying(const MoveVector &moves, Square source, Piece 
 //******************************************************************************************************************************************
 //******************************************************************************************************************************************
 //******************************************************************************************************************************************
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThereAreNoKnights)
+{
+    MoveVector moves;
+	generate_knight_moves(moves, position, sides::white);
+	ASSERT_TRUE(moves.empty());
+}
+
+TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesNothing_WhenThereAreNoKnights_OfTheSpecifiedSide)
+{
+	position.knights[sides::black] = starting::black_knights;
+	position.update_sides();
+
+    MoveVector moves;
+	generate_knight_moves(moves, position, sides::white);
+
+	ASSERT_TRUE(moves.empty());
+}
 
 //minimal targets: 2
 TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesForKnightOn_a8_OnOtherwiseClearBoard)

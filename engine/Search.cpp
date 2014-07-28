@@ -6,9 +6,9 @@
 
 //#define OINK_SEARCH_DIAGNOSTICS
 
-#ifndef OINK_SEARCH_DIAGNOSTICS
-#include <display/console/ConsoleDisplay.hpp>
-#endif
+//#ifndef OINK_SEARCH_DIAGNOSTICS
+//#include <display/ConsoleDisplay.hpp>
+//#endif
 
 #include <algorithm>
 

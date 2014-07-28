@@ -2,6 +2,7 @@
 #define CONSOLE_DISPLAY_HPP
 
 #include <engine/ChessConstants.hpp>
+#include <engine/Move.hpp>
 
 #include <vector>
 #include <utility>
@@ -11,7 +12,6 @@
 namespace chess
 {
     class Position;
-    class Move;
 
 	void print_position(const Position &position);
 
@@ -30,7 +30,6 @@ namespace chess
     }
 
     void print_move(Move move, int move_num, Side side, util::PositionType pos_characteristics, PosEvaluationFrac eval);
-    void pgn_out_move(FILE *file, Move move, int move_num, Side side, util::PositionType pos_characteristics);
 }
 
 #endif // CONSOLE_DISPLAY_HPP

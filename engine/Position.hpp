@@ -57,6 +57,31 @@ namespace chess
         {
             assert(util::nil == (sides[sides::white] & sides[sides::black]));
         }
+
+        bool operator==(const Position& other) const
+        {
+            return memcmp(piece_bbs, other.piece_bbs, sizeof(piece_bbs)) == 0 &&
+                   memcmp(sides, other.sides, sizeof(sides)) == 0 &&
+                   memcmp(squares, other.squares, sizeof(squares)) == 0 &&
+                   ep_target_square == other.ep_target_square &&
+                   fifty_move_count == other.fifty_move_count &&
+                   castling_rights  == other.castling_rights &&
+                   material         == other.material;
+        }
+
+        void manually_move_piece(Piece piece, Square from, Square to)
+        {
+            piece_bbs[piece] |= squarebits::indexed[to];
+            piece_bbs[piece] &= ~squarebits::indexed[from];
+            squares[from] = pieces::NONE;
+            squares[to]   = piece;
+        }
+
+        void place_piece(Piece piece, Square where)
+        {
+            piece_bbs[piece] |= squarebits::indexed[where];
+            squares[where]   = piece;
+        }
     };
 }
 

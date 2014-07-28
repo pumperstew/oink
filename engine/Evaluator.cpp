@@ -3,7 +3,7 @@
 #include "MoveGenerator.hpp"
 #include "BasicOperations.hpp"
 
-#include <display/console/ConsoleDisplay.hpp>
+//#include <display/ConsoleDisplay.hpp>
 
 using namespace chess::util;
 

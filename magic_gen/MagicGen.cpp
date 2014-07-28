@@ -4,7 +4,7 @@
 #define OINK_MOVEGEN_DIAGNOSTICS
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
-    #include <display/console/ConsoleDisplay.hpp>
+    #include <display/ConsoleDisplay.hpp>
 #endif
 
 

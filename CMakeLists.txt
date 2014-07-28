@@ -19,14 +19,8 @@ set(GTEST_INCLUDE_DIR ${SOURCE_DIR}/include)
 message("${GTEST_INCLUDE_DIR}") 
 ExternalProject_Get_Property(gtest BINARY_DIR)
 set(GTEST_LIBRARY_DIR ${BINARY_DIR})
-message("${GTEST_LIBRARY_DIR}") 
-
-##########################################################################################
-###################################### Boost #############################################
-
-# set(BOOST_ROOT "C:/code/libraries/boost")
-# find_package(Boost 1.52.0 REQUIRED)
-# include_directories(${Boost_INCLUDE_DIRS})
+message("${GTEST_LIBRARY_DIR}")
+set(GTEST_LIBRARY gtest.lib)
 
 ##########################################################################################
 
@@ -38,3 +32,4 @@ add_subdirectory(engine)
 add_subdirectory(display)
 add_subdirectory(test_harness)
 add_subdirectory(magic_gen)
+add_subdirectory(fen_parser)

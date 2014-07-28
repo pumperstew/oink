@@ -4,4 +4,4 @@ set(OINK_MAGIC_GEN_SRC
 )
 
 add_executable(OinkMagicGen ${OINK_MAGIC_GEN_SRC})
-target_link_libraries(OinkMagicGen engine console_display)
+target_link_libraries(OinkMagicGen OinkEngine OinkDisplay)

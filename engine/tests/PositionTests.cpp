@@ -1,5 +1,5 @@
 #include <engine/Position.hpp>
-#include <display/console/ConsoleDisplay.hpp>
+#include <display/ConsoleDisplay.hpp>
 
 #include <gtest/gtest.h>
 

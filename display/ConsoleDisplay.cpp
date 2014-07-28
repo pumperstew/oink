@@ -1,4 +1,5 @@
 #include "ConsoleDisplay.hpp"
+
 #include <engine/Position.hpp>
 #include <engine/BasicOperations.hpp>
 
@@ -165,59 +166,5 @@ namespace chess
         }
 
         printf("\n%d.%s %s%s (%+.2f)\n", move_num, prefix, algebraic.c_str(), suffix, eval);
-    }
-
-    void pgn_out_move(FILE *out_file, Move move, int move_num, Side side, util::PositionType pos_characteristics)
-    {
-        if (side == sides::white)
-            fprintf(out_file, "%d. ", move_num);
-
-        const char *suffixes[] = { "", "", "", " 1/2-1/2", " 1/2-1/2" };
-        const char *suffix     = suffixes[pos_characteristics];
-
-        if (move.get_castling() != pieces::NONE)
-        {
-            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
-            {
-                fprintf(out_file, "O-O-O ");
-            }
-            else
-            {
-                fprintf(out_file, "O-O ");
-            }
-            return;
-
-        }
-
-        string algebraic;
-
-        Piece moving_piece = move.get_piece();
-        if (moving_piece != pieces::WHITE_PAWN && moving_piece != pieces::BLACK_PAWN)
-        {
-            algebraic = toupper(pieces::symbols[moving_piece]);
-        }
-
-        Square source = move.get_source();
-        RankFile rank, file;
-        square_to_rank_file(source, rank, file);
-
-        algebraic += 'a' + file;
-        algebraic += '1' + rank;
-
-        algebraic += move.get_captured_piece() != pieces::NONE ? "x" : "-";
-
-        Square dest = move.get_destination();
-        square_to_rank_file(dest, rank, file);
-
-        algebraic += 'a' + file;
-        algebraic += '1' + rank;
-
-        if (move.get_promotion_piece() != pieces::NONE)
-        {
-            algebraic += "=";
-            algebraic += toupper(pieces::symbols[move.get_promotion_piece()]);
-        }
-
-        fprintf(out_file, "%s ", algebraic.c_str());
     }
 }

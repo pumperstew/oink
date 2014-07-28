@@ -1,13 +1,12 @@
 
-set(ENGINE_TESTS_SRC
+include(${CMAKE_HOME_DIRECTORY}/cmake/AddGTestTest.cmake)
+
+set(OINK_ENGINE_TESTS_SRC
 	BasicOperationsTests.cpp
 	PositionTests.cpp
 	MoveGeneratorTests.cpp
+	SearchTests.cpp
 )
+set(OINK_ENGINE_TESTS_LIBS OinkEngine OinkDisplay)
 
-include_directories(${GTEST_INCLUDE_DIR})
-link_directories(${GTEST_LIBRARY_DIR})
-add_executable(EngineTests ${ENGINE_TESTS_SRC})
-target_link_libraries(EngineTests engine console_display gtest.lib)
-add_dependencies(EngineTests gtest)
-add_test(EngineTests EngineTests)
+ADD_GTEST_TEST(OinkEngineTests "${OINK_ENGINE_TESTS_SRC}" "${OINK_ENGINE_TESTS_LIBS}")
