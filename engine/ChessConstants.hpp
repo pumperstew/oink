@@ -210,12 +210,7 @@ namespace chess
 
         const unsigned char CASTLING_RIGHTS_ANY_WHITE = CASTLING_RIGHTS_WHITE_KINGSIDE | CASTLING_RIGHTS_WHITE_QUEENSIDE;
         const unsigned char CASTLING_RIGHTS_ANY_BLACK = CASTLING_RIGHTS_BLACK_KINGSIDE | CASTLING_RIGHTS_BLACK_QUEENSIDE;
-        const unsigned char CASTLING_RIGHTS_KINGSIDE[2]  = { CASTLING_RIGHTS_WHITE_KINGSIDE, CASTLING_RIGHTS_WHITE_QUEENSIDE };
-        const unsigned char CASTLING_RIGHTS_QUEENSIDE[2] = { CASTLING_RIGHTS_BLACK_KINGSIDE, CASTLING_RIGHTS_BLACK_QUEENSIDE };
-        const unsigned char CASTLING_RIGHTS_ANY[2]       = { CASTLING_RIGHTS_ANY_WHITE,      CASTLING_RIGHTS_ANY_BLACK };
-
-        const Square KING_ROOK_START[2]  = { squares::h1, squares::h8 };
-        const Square QUEEN_ROOK_START[2] = { squares::a1, squares::a8 };
+        const unsigned char CASTLING_RIGHTS_ANY[2]    = { CASTLING_RIGHTS_ANY_WHITE, CASTLING_RIGHTS_ANY_BLACK };
     }
 
     namespace squarebits

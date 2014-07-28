@@ -21,6 +21,7 @@ namespace chess
     const DetailedPerftResults starting_position_perft_expectations = 
     {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/",
+        6,
         { 1, 20, 400, 8902, 197281, 4865609, 119060324 },
         { 0, 0, 0, 34, 1576, 82719, 2812008 },
         { 0, 0, 0, 0, 0, 258, 5248 },
@@ -33,13 +34,14 @@ namespace chess
     const DetailedPerftResults kiwipete_perft_expectations = 
     {
         "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R/",
+        5,
         { 1, 48, 2039, 97862, 4085603, 193690690, 0 },
         { 0, 8,  351,  17102, 757163,  35043416,  0 },
         { 0, 0,  1,    45,    1929,    73365,     0 },
         { 0, 2,  91,   3162,  128013,  4993637,   0 },
         { 0, 0,  0,    0,     15172,   8392,      0 },
         { 0, 0,  3,    993,   25523,   3309887,   0 },
-        { 0, 0,  0,    1,     438,     30171,     0 },
+        { 0, 0,  0,    1,     43,      30171,     0 },
     };
 }
 
@@ -142,13 +144,13 @@ namespace chess
 
         cout.imbue(std::locale(""));
         cout << "\nperft("     << depth << ")"
-             << "\nNodes: "    << node_count            << perft_checker(depth, node_count, expected_results.PERFT_NODES_EXPECTED)
-             << "\nCaptures: " << perft_capture_count   << perft_checker(depth, perft_capture_count, expected_results.PERFT_CAPTURES_EXPECTED)
-             << "\nEPs: "      << perft_ep_count        << perft_checker(depth, perft_ep_count, expected_results.PERFT_EPS_EXPECTED)
-             << "\nCastles: "  << perft_castle_count    << perft_checker(depth, perft_castle_count, expected_results.PERFT_CASTLES_EXPECTED)
-             << "\nProms: "    << perft_prom_count      << perft_checker(depth, perft_prom_count, expected_results.PERFT_PROMS_EXPECTED)
-             << "\nChecks: "   << perft_check_count     << perft_checker(depth, perft_check_count, expected_results.PERFT_CHECKS_EXPECTED)
-             << "\nMates: "    << perft_mate_count      << perft_checker(depth, perft_mate_count, expected_results.PERFT_MATES_EXPECTED)
+             << "\nNodes: "    << node_count            << perft_checker(depth, node_count, expected_results.nodes_expected)
+             << "\nCaptures: " << perft_capture_count   << perft_checker(depth, perft_capture_count, expected_results.captures_expected)
+             << "\nEPs: "      << perft_ep_count        << perft_checker(depth, perft_ep_count, expected_results.eps_expected)
+             << "\nCastles: "  << perft_castle_count    << perft_checker(depth, perft_castle_count, expected_results.castles_expected)
+             << "\nProms: "    << perft_prom_count      << perft_checker(depth, perft_prom_count, expected_results.proms_expected)
+             << "\nChecks: "   << perft_check_count     << perft_checker(depth, perft_check_count, expected_results.checks_expected)
+             << "\nMates: "    << perft_mate_count      << perft_checker(depth, perft_mate_count, expected_results.mates_expected)
              << endl;
     }
 
@@ -162,7 +164,7 @@ namespace chess
 
         cout.imbue(std::locale(""));
         cout << "\nperft("        << depth << ")"
-             << "\nNodes: "       << node_count << perft_checker(depth, node_count, expected_results.PERFT_NODES_EXPECTED)
+             << "\nNodes: "       << node_count << perft_checker(depth, node_count, expected_results.nodes_expected)
              << "\nElapsed: "     << elapsed_ms/1000. << "s"
              << "\nNodes/second " << nps
              << endl;

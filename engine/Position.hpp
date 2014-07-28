@@ -46,6 +46,7 @@ namespace chess
         // Returns whether the move was successfully made.
 		bool make_move(Move move);
         bool detect_check(Side king_side) const;
+        bool square_attacked(Square square, Side side) const;
 
         OINK_INLINE Bitboard get_empty_squares() const
         {

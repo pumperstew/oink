@@ -124,16 +124,16 @@ int main(int argc, char **argv)
     //play_self("");//"rnbqkbnr/pp1ppppp/8/2p5/8/2N5/PPPPPPPP/R1BQKBNR/");
     //return 0;
 
-    //string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R/";
-    Position pos = fen::parse_fen(kiwipete_perft_expectations.fen);
+    auto perft_results = &kiwipete_perft_expectations;
+    Position pos = fen::parse_fen(perft_results->fen);
 
-    //perft_driver_bench(pos, 5);
-    //perft_driver_bench(pos, 5);
-    //return 0;
+    perft_driver_bench(pos, 5, *perft_results);
+    perft_driver_bench(pos, 5, *perft_results);
+    return 0;
 
-    for (int depth = 0; depth < 6; ++depth)
+    for (int depth = 0; depth <= perft_results->depth_supported; ++depth)
     {
-        perft_driver_correctness(pos, depth, kiwipete_perft_expectations);
+        perft_driver_correctness(pos, depth, *perft_results);
     }
     return 0;
 }

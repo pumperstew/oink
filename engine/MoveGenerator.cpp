@@ -2,10 +2,10 @@
 #include "Position.hpp"
 #include "BasicOperations.hpp"
 
-// #define OINK_MOVEGEN_DIAGNOSTICS
+//#define OINK_MOVEGEN_DIAGNOSTICS
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
-    #include <display/console/ConsoleDisplay.hpp>
+    #include <display/ConsoleDisplay.hpp>
 #endif
 
 namespace chess
@@ -76,8 +76,10 @@ namespace chess
 
         if (side == sides::white && square == squares::e1)
         {
-            if ((position.castling_rights & sides::CASTLING_RIGHTS_WHITE_KINGSIDE) && (position.squares[squares::h1] == pieces::WHITE_ROOK))
+            if (position.castling_rights & sides::CASTLING_RIGHTS_WHITE_KINGSIDE)
             {
+                assert(position.squares[squares::h1] == pieces::WHITE_ROOK);
+
                 if (util::nil == (position.whole_board & moves::white_kingside_castling_mask))
                 {
                     move.set_destination(squares::g1);
@@ -87,8 +89,10 @@ namespace chess
                 }
             }
 
-            if ((position.castling_rights & sides::CASTLING_RIGHTS_WHITE_QUEENSIDE) && (position.squares[squares::a1] == pieces::WHITE_ROOK))
+            if (position.castling_rights & sides::CASTLING_RIGHTS_WHITE_QUEENSIDE)
             {
+                assert(position.squares[squares::a1] == pieces::WHITE_ROOK);
+
                 if (util::nil == (position.whole_board & moves::white_queenside_castling_mask))
                 {
                     move.set_destination(squares::c1);
@@ -100,8 +104,10 @@ namespace chess
         }
         else if (side == sides::black && square == squares::e8)
         {
-            if ((position.castling_rights & sides::CASTLING_RIGHTS_BLACK_KINGSIDE) && (position.squares[squares::h8] == pieces::BLACK_ROOK))
+            if (position.castling_rights & sides::CASTLING_RIGHTS_BLACK_KINGSIDE)
             {
+                assert(position.squares[squares::h8] == pieces::BLACK_ROOK);
+
                 if (util::nil == (position.whole_board & moves::black_kingside_castling_mask))
                 {
                     move.set_destination(squares::g8);
@@ -111,8 +117,10 @@ namespace chess
                 }
             }
 
-            if ((position.castling_rights & sides::CASTLING_RIGHTS_BLACK_QUEENSIDE) && (position.squares[squares::a8] == pieces::BLACK_ROOK))
+            if (position.castling_rights & sides::CASTLING_RIGHTS_BLACK_QUEENSIDE)
             {
+                assert(position.squares[squares::a8] == pieces::BLACK_ROOK);
+
                 if (util::nil == (position.whole_board & moves::black_queenside_castling_mask))
                 {
                     move.set_destination(squares::c8);

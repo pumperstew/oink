@@ -5,18 +5,20 @@
 
 namespace chess
 {
-    const int MAX_PERFT_RESULTS_DEPTH = 6 + 1;
+    const int MAX_PERFT_RESULTS_DEPTH = 6;
+    const int MAX_PERFT_RESULTS_ARR_SIZE = MAX_PERFT_RESULTS_DEPTH + 1;
 
     struct DetailedPerftResults
     {
         const char* fen;
-        const uint64_t PERFT_NODES_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_CAPTURES_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_EPS_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_CASTLES_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_PROMS_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_CHECKS_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
-        const uint64_t PERFT_MATES_EXPECTED[MAX_PERFT_RESULTS_DEPTH];
+        int         depth_supported;
+        const uint64_t nodes_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t captures_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t eps_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t castles_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t proms_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t checks_expected[MAX_PERFT_RESULTS_ARR_SIZE];
+        const uint64_t mates_expected[MAX_PERFT_RESULTS_ARR_SIZE];
     };
 
     extern const DetailedPerftResults starting_position_perft_expectations;
