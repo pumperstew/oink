@@ -22,7 +22,7 @@ namespace chess
         }
 	}
 
-    static void generate_moves_from_destinations_with_promotion(Bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side, bool promoting)
+    static void generate_moves_from_destinations_with_promotion(Bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side)
 	{
         Square dest_square;
 		while (destinations)
@@ -30,16 +30,17 @@ namespace chess
 			destinations = get_and_clear_first_occ_square(destinations, &dest_square);
 			move.set_destination(dest_square);
 			move.set_captured_piece(position.squares[dest_square]);
-			if (promoting)
-			{
-				move.set_promotion_piece(pieces::QUEENS[side]);
-				moves.emplace_back(move);
-				move.set_promotion_piece(pieces::ROOKS[side]);
-				moves.emplace_back(move);
-				move.set_promotion_piece(pieces::KNIGHTS[side]);
-				moves.emplace_back(move);
-				move.set_promotion_piece(pieces::BISHOPS[side]);
-			}
+			
+			move.set_promotion_piece(pieces::QUEENS[side]);
+			moves.emplace_back(move);
+			
+            move.set_promotion_piece(pieces::ROOKS[side]);
+			moves.emplace_back(move);
+			
+            move.set_promotion_piece(pieces::KNIGHTS[side]);
+			moves.emplace_back(move);
+
+			move.set_promotion_piece(pieces::BISHOPS[side]);
             moves.emplace_back(move);
         }
 	}
@@ -168,8 +169,6 @@ namespace chess
             move.set_promotion_piece(pieces::NONE);
 
 			RankFile rank = square_to_rank(source_sq);
-			bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
-
 			Bitboard whole_board = position.whole_board;
 			if (rank == sides::STARTING_PAWN_RANKS[side])
             {
@@ -181,15 +180,25 @@ namespace chess
 
             // Normal captures
 			destinations |= moves::pawn_captures[side][source_sq] & position.sides[swap_side(side)] & ~position.kings[swap_side(side)];
-			generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side, promoting);
-
-            // EP captures: ep_target_square is set if there is a valid target for an EP capture. 
-            // The actual captured pawn will have to be fixed up later. 
-            // OINK_TODO: cleaner way?
-            Bitboard ep_bb = (position.ep_target_square == squares::NO_SQUARE) ? util::nil : util::one << position.ep_target_square;
-            destinations = moves::pawn_captures[side][source_sq] & ep_bb;
-            // There must be a maximum of one destination.
-            generate_ep_move(destinations, move, moves, position, side);
+            bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
+			
+            if (promoting)
+            {
+                generate_moves_from_destinations_with_promotion(destinations, move, moves, position, side);
+            }
+            else
+            {
+                generate_moves_from_destinations(destinations, move, moves, position, side);
+                
+                // EP captures are never promotions.
+                // EP captures: ep_target_square is set if there is a valid target for an EP capture. 
+                // The actual captured pawn will have to be fixed up later. 
+                // OINK_TODO: cleaner way?
+                Bitboard ep_bb = (position.ep_target_square == squares::NO_SQUARE) ? util::nil : util::one << position.ep_target_square;
+                destinations = moves::pawn_captures[side][source_sq] & ep_bb;
+                // There must be a maximum of one destination.
+                generate_ep_move(destinations, move, moves, position, side);
+            }
         }
     }
 
