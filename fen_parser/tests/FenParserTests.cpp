@@ -57,7 +57,7 @@ protected:
 
 TEST_F(FenParserTests, TestThat_InitialGamePosition_ParsesCorrectly)
 {
-	string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/";
+	string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Position expected;
     expected.setup_starting_position();
 
@@ -66,20 +66,20 @@ TEST_F(FenParserTests, TestThat_InitialGamePosition_ParsesCorrectly)
 
 TEST_F(FenParserTests, TestThat_SicilianGamePosition_ParsesCorrectly)
 {
-	string fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R/";
+	string fen = "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2";
 	Position expected;
     expected.setup_starting_position();
     expected.manually_move_piece(WHITE_PAWN,   e2, e4);
     expected.manually_move_piece(BLACK_PAWN,   c7, c5);
     expected.manually_move_piece(WHITE_KNIGHT, g1, f3);
     expected.update_sides();
-    
+    expected.fifty_move_count = 1;
 	test_helper(fen, ParsingOK, expected);
 }
 
 TEST_F(FenParserTests, TestThat_ValidFenString_IsParsedCorrectly_ExampleMiddlegamePosition)
 {
-	string fen = "1r2k1nr/3q4/2np1p1b/4p3/Q1NPP1pp/2P1BN2/P4PPP/R2R2K1/";
+	string fen = "1r2k1nr/3q4/2np1p1b/4p3/Q1NPP1pp/2P1BN2/P4PPP/R2R2K1 w KQkq - 1 20";
     Position expected;
     expected.place_piece(BLACK_ROOK,   b8);
     expected.place_piece(BLACK_KING,   e8);
@@ -109,43 +109,12 @@ TEST_F(FenParserTests, TestThat_ValidFenString_IsParsedCorrectly_ExampleMiddlega
     expected.place_piece(WHITE_KING,   g1);
     expected.update_sides();
 
+    expected.fifty_move_count = 1;
+    expected.castling_rights = sides::CASTLING_RIGHTS_ANY_BLACK | sides::CASTLING_RIGHTS_ANY_WHITE;
+
 	test_helper(fen, ParsingOK, expected);
 }
 
-//TEST_F(FenParserTests, TestThat_ValidFenString_IsParsedCorrectly_Example1)
-//{
-//	std::string fen = "5N1k/6p1/7p/4P3/pp2Q3/4q3/1P4PP/2b4K/";
-//	int expected[] =
-//	{
-//		0,  0, 0,  0,  0,   9,  0, 5,
-//		0,  0, 0,  0,  0,   0,  6, 0,
-//		0,  0, 0,  0,  0,   0,  0, 6,
-//		0,  0, 0,  0,  7,   0,  0, 0,
-//		6,  6, 0,  0,  11,  0,  0, 0,
-//		0,  0, 0,  0,  4,   0,  0, 0,
-//		0,  7, 0,  0,  0,   0,  7, 7,
-//		0,  0, 3,  0,  0,   0,  0, 12
-//	};
-//	ParseFenStringTestHelper(fen, ParsingOK, expected);
-//}
-//
-//TEST_F(FenParserTests, TestThat_ValidFenString_IsParsedCorrectly_Example2)
-//{
-//	std::string fen = "r5k1/2p2ppp/r1p1q3/P2pP3/1P2bP2/2B1Q3/5RPP/R5K1/";
-//	int expected[] =
-//	{
-//		1,  0, 0,  0,  0,   0,  5, 0,
-//		0,  0, 6,  0,  0,   6,  6, 6,
-//		1,  0, 6,  0,  4,   0,  0, 0,
-//		7,  0, 0,  6,  7,   0,  0, 0,
-//		0,  7, 0,  0,  3,   7,  0, 0,
-//		0,  0, 10, 0,  11,  0,  0, 0,
-//		0,  0, 0,  0,  0,   8,  7, 7,
-//		8,  0, 0,  0,  0,   0,  12,0
-//	};
-//	ParseFenStringTestHelper(fen, ParsingOK, expected);
-//}
-//
 TEST_F(FenParserTests, TestThat_FenStringWithTooFewRanks_FailsToParse)
 {
 	string fen = "5N1k/6p1/7p/4P3/pp2Q3/4q3/1P4PP/";
@@ -158,9 +127,110 @@ TEST_F(FenParserTests, TestThat_FenStringWithOneRank_FailsToParse)
 	test_helper(fen, ParsingFail);
 }
 
-TEST_F(FenParserTests, TestThat_FenStringWithNoTrailingSlash_FailsToParse)
+TEST_F(FenParserTests, TestThat_CastlingRightsAreParsedCorrectly)
 {
-	string fen = "5N1k/6p1/7p/4P3/pp2Q3/4q3/1P4PP/2b4K";
+	string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    auto pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, sides::CASTLING_RIGHTS_ANY_BLACK | sides::CASTLING_RIGHTS_ANY_WHITE);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w K - 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, sides::CASTLING_RIGHTS_WHITE_KINGSIDE);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, sides::CASTLING_RIGHTS_WHITE_KINGSIDE | sides::CASTLING_RIGHTS_WHITE_QUEENSIDE);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQk - 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, sides::CASTLING_RIGHTS_WHITE_KINGSIDE | sides::CASTLING_RIGHTS_WHITE_QUEENSIDE | sides::CASTLING_RIGHTS_BLACK_KINGSIDE);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kQ - 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, sides::CASTLING_RIGHTS_BLACK_KINGSIDE | sides::CASTLING_RIGHTS_WHITE_QUEENSIDE);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.castling_rights, 0);
+}
+
+TEST_F(FenParserTests, TestThat_EPSquareIsParsedCorrectly)
+{
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    auto pos = parse_fen(fen);
+    ASSERT_EQ(pos.ep_target_square, squares::NO_SQUARE);
+
+	fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e3 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.ep_target_square, squares::e3);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq h8 0 1";
+    test_helper(fen, ParsingFail); // bad rank
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq b6 0 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.ep_target_square, squares::b6);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq h0 0 1";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq bb 0 1";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 44 0 1";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq f 0 1";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 2 0 1";
+	test_helper(fen, ParsingFail);
+}
+
+TEST_F(FenParserTests, TestThat_FiftyMoveClockIsParsedCorrectly)
+{
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    auto pos = parse_fen(fen);
+    ASSERT_EQ(pos.fifty_move_count, 0);
+
+	fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 11 1";
+    pos = parse_fen(fen);
+    ASSERT_EQ(pos.fifty_move_count, 11);
+}
+
+TEST_F(FenParserTests, TestThat_FullMoveCountIsParsedCorrectly)
+{
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    int move_count;
+    auto pos = parse_fen(fen, &move_count);
+    ASSERT_EQ(move_count, 1);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 84";
+    pos = parse_fen(fen, &move_count);
+    ASSERT_EQ(move_count, 84);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 08";
+	test_helper(fen, ParsingFail);
+}
+
+TEST_F(FenParserTests, TestThat_SideToMoveIsParsedCorrectly)
+{
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    Side side_to_move;
+    auto pos = parse_fen(fen, nullptr, &side_to_move);
+    ASSERT_EQ(side_to_move, sides::white);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 84";
+    pos = parse_fen(fen, nullptr, &side_to_move);
+    ASSERT_EQ(side_to_move, sides::black);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR q KQkq - 0 08";
+	test_helper(fen, ParsingFail);
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR t KQkq - 0 08";
 	test_helper(fen, ParsingFail);
 }
 

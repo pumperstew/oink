@@ -1,127 +1,252 @@
 #include "FenParser.hpp"
 
-#include <engine/ChessConstants.hpp>
-
-#define BOOST_SPIRIT_USE_PHOENIX_V3
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_container.hpp>
-
-using namespace boost::spirit;
-using namespace boost;
 using namespace chess;
 
 namespace chess { namespace fen 
 {
-	struct pieces_ : qi::symbols<char, Piece>
+    static void bad_fen(char what)
+    {
+        throw FenParseFailure(std::string("Bad FEN: '") + what + "' appeared in the wrong place");
+    }
+
+    static unsigned char move_count_to_int(const std::string &fen, int index, int count)
+    {
+        char buf[3] = { fen[index], 0, 0 };
+        if (count == 2) 
+            buf[1] = fen[index+1];
+        return atoi(buf);
+    }
+
+	Position parse_fen(const std::string &fen, int *fullmove_count, Side *side_to_move)
 	{
-		pieces_()
-		{
-			add
-				("r"   , pieces::BLACK_ROOK)
-				("n"   , pieces::BLACK_KNIGHT)
-				("b"   , pieces::BLACK_BISHOP)
-				("q"   , pieces::BLACK_QUEEN)
-				("k"   , pieces::BLACK_KING)
-				("p"   , pieces::BLACK_PAWN)
-				("P"   , pieces::WHITE_PAWN)
-				("R"   , pieces::WHITE_ROOK)
-				("N"   , pieces::WHITE_KNIGHT)
-				("B"   , pieces::WHITE_BISHOP)
-				("Q"   , pieces::WHITE_QUEEN)
-				("K"   , pieces::WHITE_KING)
-			;
-		}
-
-	} qi_pieces;
-
-	template <typename Iterator>
-	struct fen : qi::grammar<Iterator, std::vector<int>()>
-	{
-		fen() : fen<Iterator>::base_type(fenRule)
-		{
-			using qi::int_;
-			using qi::eps;
-			using qi::lit;
-			using qi::_val;
-			using qi::_1;
-			using qi::repeat;
-			using ascii::char_;
-			using phoenix::end;
-			using phoenix::push_back;
-			using phoenix::insert;
-			using phoenix::size;
-			//TODO: use a list parser to simplify?
-			//TODO: missing trailing '/' - causes failure
-
-			rankElement =
-				qi_pieces		[push_back(_val, _1)]
-				| int_		    [insert(_val, end(_val), _1, 0)]
-			;
-
-			rank = +rankElement;
-
-			newRank = eps(size(_val) % 8 == 0) >> lit('/');
-
-			fenRule = repeat(8)[rank > newRank];
-
-			/*BOOST_SPIRIT_DEBUG_NODE(rankElement);
-			debug(rankElement);
-			BOOST_SPIRIT_DEBUG_NODE(rank);
-			debug(rank);
-			BOOST_SPIRIT_DEBUG_NODE(newRank);
-			debug(newRank);
-			BOOST_SPIRIT_DEBUG_NODE(fenRule);
-			debug(fenRule);*/
-		}
-
-		qi::rule<Iterator, std::vector<int>()> fenRule, rank, rankElement, newRank;
-	};
-
-/*
-start =
-			repeat(8)[
-			+(
-                pieces		    [push_back(_val, _1)]
-                |  int_		    [insert(_val, end(_val), _1, 0)]
-            )
-			> 
-			(eps((size(_val)  % 8) == 0) >> char_('/'))
-			]
-        ;
-*/
-   
-	Position parse_fen(std::string fenString)
-	{
-		std::vector<Piece> fenResult;
-		fen<std::string::iterator> fenParser;
-		bool ok;
-		try
-		{
-			ok = qi::parse(fenString.begin(), fenString.end(), fenParser, fenResult);
-		}
-		catch (const std::exception &ex)
-		{
-			throw FenParseFailure(ex.what());
-		}
-		
-		if (!ok)
-			throw FenParseFailure("Fen failed to parse (non-throwing)");
-
         Position pos;
-        int i = 0;
-        for (RankFile rank = util::BOARD_SIZE - 1; rank >= 0; --rank)
-        {
-            for (RankFile file = 0; file < util::BOARD_SIZE; ++file)
-            {
-                Square square = rank_file_to_square(rank, file);
-                pos.squares[square] = fenResult[i];
+        pos.castling_rights = 0;
+        int halfmove_clock_char_count = 0;
+        int fullmove_char_count = 0;
+        RankFile ep_file = -1, ep_rank = -1;
+        int move_num = 1;
+        Side to_move = sides::white;
 
-                pos.piece_bbs[fenResult[i]] |= util::one << square;
-                ++i;
+        enum ParseState
+        {
+            ExpectPiecePositions,
+            ExpectToMove,
+            ExpectCastlingRights,
+            ExpectEPSquare,
+            ExpectHalfMoveClock,
+            ExpectFullMoveCounter,
+            ExpectEnd,
+        };
+        
+        ParseState state = ExpectPiecePositions;
+        Square square = squares::a8;
+        for (int i = 0; i < fen.size(); ++i)
+        {
+            char c = fen[i];
+            Square square_step = 1;
+
+            switch (c)
+            {
+            case 'r':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::BLACK_ROOK, square);
+                break;
+            case 'n':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::BLACK_KNIGHT, square);
+                break;
+            case 'b':
+                if (state == ExpectToMove)
+                    to_move = sides::black;
+                else if (state == ExpectEPSquare)
+                {
+                    if (ep_file >= 0)
+                        bad_fen(c);
+                    ep_file = files::b;
+                }
+                else if (state == ExpectPiecePositions)
+                    pos.place_piece(pieces::BLACK_BISHOP, square);
+                else
+                    bad_fen(c);
+                break;
+            case 'q':
+                if (state == ExpectCastlingRights)
+                    pos.castling_rights |= sides::CASTLING_RIGHTS_BLACK_QUEENSIDE;
+                else if (state == ExpectPiecePositions)
+                    pos.place_piece(pieces::BLACK_QUEEN, square);
+                else
+                    bad_fen(c);
+                break;
+            case 'k':
+                if (state == ExpectCastlingRights)
+                    pos.castling_rights |= sides::CASTLING_RIGHTS_BLACK_KINGSIDE;
+                else if (state == ExpectPiecePositions)
+                    pos.place_piece(pieces::BLACK_KING, square);
+                else
+                     bad_fen(c);
+                break;
+            case 'p':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::BLACK_PAWN, square);
+                break;
+            case 'R':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::WHITE_ROOK, square);
+                break;
+            case 'N':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::WHITE_KNIGHT, square);
+                break;
+            case 'B':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::WHITE_BISHOP, square);
+                break;
+            case 'Q':
+                if (state == ExpectCastlingRights)
+                    pos.castling_rights |= sides::CASTLING_RIGHTS_WHITE_QUEENSIDE;
+                else if (state == ExpectPiecePositions)
+                    pos.place_piece(pieces::WHITE_QUEEN, square);
+                else
+                    bad_fen(c);
+                break;
+            case 'K':
+                if (state == ExpectCastlingRights)
+                    pos.castling_rights |= sides::CASTLING_RIGHTS_WHITE_KINGSIDE;
+                else if (state == ExpectPiecePositions)
+                    pos.place_piece(pieces::WHITE_KING, square);
+                else
+                    bad_fen(c);
+                break;
+            case 'P':
+                if (state != ExpectPiecePositions)
+                    bad_fen(c);
+                else
+                    pos.place_piece(pieces::WHITE_PAWN, square);
+                break;
+            case '0':
+                if (state == ExpectHalfMoveClock)
+                    ++halfmove_clock_char_count;
+                else if (state == ExpectFullMoveCounter)
+                {
+                    if (fullmove_char_count == 0) // Zero cannot be first.
+                        bad_fen(c);
+                    ++fullmove_char_count;
+                }
+                else
+                    bad_fen(c);
+                break;
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+                if (state == ExpectHalfMoveClock)
+                    ++halfmove_clock_char_count;
+                else if (state == ExpectFullMoveCounter)
+                     ++fullmove_char_count;
+                else if (state == ExpectPiecePositions)
+                    square_step = 1 + (c - '1');
+                else if (state == ExpectEPSquare)
+                {
+                    if (ep_file < 0)
+                        bad_fen(c);
+                    ep_rank = ranks::first + (c - '1');
+                    if (ep_rank != ranks::third && ep_rank != ranks::sixth)
+                        bad_fen(c);
+                }
+                else
+                    bad_fen(c);
+                break;
+            case '/':
+                if (square % 8)
+                    throw FenParseFailure("Bad FEN: incomplete rank");
+                square_step = -16;
+                break;
+            case ' ':
+                if (state == ExpectPiecePositions && square != squares::a2) // h1 + 1
+                    throw FenParseFailure("Bad FEN: incomplete piece placements");
+                if (state == ExpectHalfMoveClock)
+                    pos.fifty_move_count = move_count_to_int(fen, i - halfmove_clock_char_count, halfmove_clock_char_count);
+                else if (state == ExpectFullMoveCounter)
+                    move_num = move_count_to_int(fen, i - fullmove_char_count, fullmove_char_count);
+                else if (state == ExpectEPSquare)
+                {
+                    if (ep_file >= 0 && ep_rank < 0)
+                        bad_fen(c); 
+                    else if (ep_file >= 0 && ep_rank >= 0)
+                        pos.ep_target_square = rank_file_to_square(ep_rank, ep_file);
+                }
+                state = (ParseState)((int)state + 1);
+                break;
+            case 'w':
+                if (state != ExpectToMove)
+                    bad_fen(c);
+                to_move = sides::white;
+                break;
+            case 'a':
+            case 'c':
+            case 'd':
+            case 'e':
+            case 'f':
+            case 'g':
+            case 'h':
+                if (state != ExpectEPSquare)
+                    bad_fen(c);
+                if (ep_file >= 0)
+                    bad_fen(c);
+                ep_file = files::a + (c - 'a');
+                break;
+            case '-':
+                if (state == ExpectCastlingRights)
+                {
+                    if (pos.castling_rights)
+                        bad_fen(c);
+                }
+                else if (state == ExpectEPSquare)
+                    pos.ep_target_square = squares::NO_SQUARE;
+                else
+                    bad_fen(c);
+                break;
+            default:
+                throw FenParseFailure("Unexpected character: " + c);
             }
+
+            if (state == ExpectPiecePositions)
+                square += square_step;
+            if (state == ExpectEnd)
+                break;
         }
+
+        if (square != squares::a2)
+            throw FenParseFailure("Bad FEN: incomplete board");
+
+        if (state == ExpectHalfMoveClock && halfmove_clock_char_count)
+            pos.fifty_move_count = move_count_to_int(fen, (int)fen.size() - halfmove_clock_char_count, halfmove_clock_char_count);
+
+        if (state == ExpectFullMoveCounter && fullmove_char_count)
+            move_num = move_count_to_int(fen, (int)fen.size() - fullmove_char_count, fullmove_char_count);
+
+        if (fullmove_count)
+            *fullmove_count = move_num;
+
+        if (side_to_move)
+            *side_to_move = to_move;
+
         pos.update_sides();
 		return pos;
 	}
