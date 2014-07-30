@@ -12,6 +12,7 @@ namespace chess
     {
         const char* fen;
         int         depth_supported;
+        Side        side_to_move;
         const uint64_t nodes_expected[MAX_PERFT_RESULTS_ARR_SIZE];
         const uint64_t captures_expected[MAX_PERFT_RESULTS_ARR_SIZE];
         const uint64_t eps_expected[MAX_PERFT_RESULTS_ARR_SIZE];
@@ -26,7 +27,7 @@ namespace chess
 
     void perft_driver_correctness(Position pos, const int depth, const DetailedPerftResults &expected_results);
 
-    void perft_driver_bench(Position pos, const int depth, const DetailedPerftResults &expected_results);
+    bool perft_driver_nodesonly(Position pos, const int depth, Side side, uint64_t nodes_expected, bool quiet = false);
 }
 
 #endif // PERFT_HPP

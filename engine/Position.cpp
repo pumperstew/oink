@@ -13,7 +13,7 @@ namespace chess
         memset(sides,     util::nil,    sizeof(sides));
         memset(squares,   pieces::NONE, sizeof(squares));
 
-        castling_rights  = sides::CASTLING_RIGHTS_ANY_WHITE | sides::CASTLING_RIGHTS_ANY_BLACK;
+        castling_rights  = 0;
         ep_target_square = squares::NO_SQUARE;
         fifty_move_count = 0;
         material         = 0;
@@ -129,6 +129,8 @@ namespace chess
 		sides[sides::white] = generate_side(sides::white);
 		sides[sides::black] = generate_side(sides::black);
 		whole_board = sides[sides::white] | sides[sides::black];
+
+        // OINK_TODO: material!
 	}
 
     void Position::move_common_first_stage(Piece moving_piece, Side side, Square source, Square dest, Bitboard source_and_dest_bitboard)

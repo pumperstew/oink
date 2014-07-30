@@ -20,8 +20,9 @@ namespace chess
 {
     const DetailedPerftResults starting_position_perft_expectations = 
     {
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/",
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         6,
+        sides::white,
         { 1, 20, 400, 8902, 197281, 4865609, 119060324 },
         { 0, 0, 0, 34, 1576, 82719, 2812008 },
         { 0, 0, 0, 0, 0, 258, 5248 },
@@ -33,8 +34,9 @@ namespace chess
 
     const DetailedPerftResults kiwipete_perft_expectations = 
     {
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R/",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq",
         5,
+        sides::white,
         { 1, 48, 2039, 97862, 4085603, 193690690, 0 },
         { 0, 8,  351,  17102, 757163,  35043416,  0 },
         { 0, 0,  1,    45,    1929,    73365,     0 },
@@ -66,7 +68,7 @@ public:
     }
 };
 
-static uint64_t perft_bench(int depth, Position &pos, Side side)
+static uint64_t perft_nodesonly(int depth, Position &pos, Side side)
 {
     if (depth == 0)
         return 1;
@@ -81,7 +83,7 @@ static uint64_t perft_bench(int depth, Position &pos, Side side)
     {
         if (pos.make_move(moves[i]))
         {
-            leaves += perft_bench(depth - 1, pos, swap_side(side));
+            leaves += perft_nodesonly(depth - 1, pos, swap_side(side));
         }
         pos = backup; // undo move
     }
@@ -140,7 +142,7 @@ namespace chess
         perft_check_count   = 0;
         perft_mate_count    = 0;
 
-        uint64_t node_count = perft_correctness(depth, pos, sides::white);
+        uint64_t node_count = perft_correctness(depth, pos, expected_results.side_to_move);
 
         cout.imbue(std::locale(""));
         cout << "\nperft("     << depth << ")"
@@ -154,19 +156,23 @@ namespace chess
              << endl;
     }
 
-    void perft_driver_bench(Position pos, const int depth, const DetailedPerftResults &expected_results)
+    bool perft_driver_nodesonly(Position pos, const int depth, Side side, uint64_t nodes_expected, bool quiet)
     {
         StopWatch watch;
-        uint64_t node_count = perft_bench(depth, pos, sides::white);
+        uint64_t node_count = perft_nodesonly(depth, pos, side);
 
         int64_t elapsed_ms = watch.elapsed_ms();
         uint64_t nps = elapsed_ms ? (uint64_t)(1000 * node_count / elapsed_ms) : 0;
 
-        cout.imbue(std::locale(""));
-        cout << "\nperft("        << depth << ")"
-             << "\nNodes: "       << node_count << perft_checker(depth, node_count, expected_results.nodes_expected)
-             << "\nElapsed: "     << elapsed_ms/1000. << "s"
-             << "\nNodes/second " << nps
-             << endl;
+        if (!quiet)
+        {
+            cout.imbue(std::locale(""));
+            cout << "\nperft("        << depth << ")"
+                 << "\nNodes: "       << node_count << (node_count == nodes_expected ? "        OK" : " ===============> FAIL")
+                 << "\nElapsed: "     << elapsed_ms/1000. << "s"
+                 << "\nNodes/second " << nps
+                 << endl;
+        }
+        return node_count == nodes_expected;
     }
 }
