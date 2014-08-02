@@ -85,16 +85,24 @@ void SetWhiteQueenAt(Position &position, Square square)
 
 void CheckMoveIsInList(const MoveVector &moves, Square source, Square destination, Piece piece, Piece captured, Piece promotion = pieces::NONE, Piece castling = pieces::NONE, Piece enPassant = pieces::NONE)
 {
-	auto moveIt = std::find_if(moves.begin(), moves.end(), [&](const Move& move) { 
-		return move.get_source()	      == source && 
-			   move.get_destination()     == destination && 
-			   move.get_promotion_piece() == promotion &&
-               move.get_castling()        == castling &&
-			   move.get_piece()			  == piece &&
-			   move.get_captured_piece()  == captured &&
-               move.get_en_passant()      == enPassant;
-	});
-	ASSERT_NE(moves.end(), moveIt);
+    uint32_t i;
+    for (i = 0; i < moves.size; ++i)
+    {
+        Move move = moves[i];
+        
+         if (move.get_source()	        == source && 
+		     move.get_destination()     == destination && 
+		     move.get_promotion_piece() == promotion &&
+             move.get_castling()        == castling &&
+		     move.get_piece()		    == piece &&
+		     move.get_captured_piece()  == captured &&
+             move.get_en_passant()      == enPassant)
+        {
+            break;
+        }
+    }
+
+	ASSERT_NE(moves.size, i);
 }
 
 void CheckMovesDestinationVarying(const MoveVector &moves, Square source, Piece piece, Piece captured, const std::vector<Square> &destinations, Piece promotion = pieces::NONE)
@@ -139,7 +147,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_knight_moves(moves, position, sides::white);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
     CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KNIGHT, pieces::NONE, { c7, b6 });
 }
 
@@ -151,7 +159,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_knight_moves(moves, position, sides::white);
 
-	ASSERT_EQ(8, moves.size());
+	ASSERT_EQ(8, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KNIGHT, pieces::NONE,
     { f7, f3, d7, d3, g4, g6, c4, c6 });
 }
@@ -164,7 +172,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_knight_moves(moves, position, sides::white);
 
-	ASSERT_EQ(6, moves.size());
+	ASSERT_EQ(6, moves.size);
 	CheckMovesDestinationVarying(moves, squares::g3, pieces::WHITE_KNIGHT, pieces::NONE,
     { squares::h5, squares::h1, squares::f5, squares::f1, squares::e4, squares::e2 });
 }
@@ -178,7 +186,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKnightMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_knight_moves(moves, position, sides::white);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
 	CheckMoveIsInList(moves, squares::a8, squares::c7, pieces::WHITE_KNIGHT, pieces::BLACK_PAWN);
 	CheckMoveIsInList(moves, squares::a8, squares::b6, pieces::WHITE_KNIGHT, pieces::NONE);
 }
@@ -198,7 +206,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
     MoveVector moves;
 	generate_king_moves(moves, position, sides::white);
 
-	ASSERT_EQ(3, moves.size());
+	ASSERT_EQ(3, moves.size);
     CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_KING, pieces::NONE, { b8, b7, a7 });
 }
 
@@ -209,7 +217,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
     MoveVector moves;
 	generate_king_moves(moves, position, sides::white);
 
-	ASSERT_EQ(8, moves.size());
+	ASSERT_EQ(8, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_KING, pieces::NONE,
     { e6, e4, f5, d5, f6, d6, d4, f4 });
 }
@@ -217,6 +225,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForK
 // Castling: white
 TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForWhiteKingOn_e1_WithRooksInAppropriatePlaces)
 {
+    position.castling_rights |= sides::CASTLING_RIGHTS_ANY_WHITE;
 	SetWhiteKingAt(position, squares::e1);
     SetWhiteRookAt(position, squares::a1);
     SetWhiteRookAt(position, squares::h1);
@@ -224,10 +233,9 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForW
     MoveVector moves;
 	generate_king_moves(moves, position, sides::white);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e1, pieces::WHITE_KING, pieces::NONE, { d1, d2, e2, f2, f1 });
     
-
     CheckMoveIsInList(moves, squares::e1, squares::g1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
     CheckMoveIsInList(moves, squares::e1, squares::c1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
 }
@@ -235,6 +243,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForW
 // Castling: black
 TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForBlackKingOn_e8_WithRooksInAppropriatePlaces)
 {
+    position.castling_rights |= sides::CASTLING_RIGHTS_ANY_BLACK;
 	SetBlackKingAt(position, squares::e8);
     SetBlackRookAt(position, squares::a8);
     SetBlackRookAt(position, squares::h8);
@@ -242,7 +251,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForB
     MoveVector moves;
 	generate_king_moves(moves, position, sides::black);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
     CheckMovesDestinationVarying(moves, squares::e8, pieces::BLACK_KING, pieces::NONE, { d8, d7, e7, f7, f8 });
 
     CheckMoveIsInList(moves, squares::e8, squares::g8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, pieces::BLACK_KING);
@@ -264,7 +273,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
     CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3, e4 });
 }
 
@@ -275,7 +284,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(1, moves.size());
+	ASSERT_EQ(1, moves.size);
 	CheckMoveIsInList(moves, squares::e3, squares::e4, pieces::WHITE_PAWN, pieces::NONE);
 }
 
@@ -288,7 +297,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(0, moves.size());
+	ASSERT_EQ(0, moves.size);
 }
 
 //Test that jumps are disallowed
@@ -300,7 +309,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(0, moves.size());
+	ASSERT_EQ(0, moves.size);
 }
 
 TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForPawnOn_e2_WithABlackPieceOn_e4)
@@ -311,7 +320,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(1, moves.size());
+	ASSERT_EQ(1, moves.size);
     CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3 });
 }
 
@@ -323,7 +332,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(1, moves.size());
+	ASSERT_EQ(1, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3 });
 }
 
@@ -335,7 +344,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(3, moves.size());
+	ASSERT_EQ(3, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE, { e3, e4 });
 	CheckMoveIsInList(moves, squares::e2, squares::f3, pieces::WHITE_PAWN, pieces::BLACK_PAWN);
 }
@@ -349,7 +358,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(4, moves.size());
+	ASSERT_EQ(4, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::NONE,		 { e3, e4 });
 	CheckMovesDestinationVarying(moves, squares::e2, pieces::WHITE_PAWN, pieces::BLACK_PAWN, { f3, d3 });
 }
@@ -361,7 +370,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(4, moves.size());
+	ASSERT_EQ(4, moves.size);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_QUEEN);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_ROOK);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_BISHOP);
@@ -376,7 +385,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesExpectedMovesForP
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(8, moves.size());
+	ASSERT_EQ(8, moves.size);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_QUEEN);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_ROOK);
 	CheckMoveIsInList(moves, squares::c7, squares::c8, pieces::WHITE_PAWN, pieces::NONE, pieces::WHITE_BISHOP);
@@ -398,7 +407,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesEnPassantMovesFor
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::white);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
     CheckMoveIsInList(moves, squares::e5, squares::e6, pieces::WHITE_PAWN, pieces::NONE,       pieces::NONE, pieces::NONE, pieces::NONE);
     CheckMoveIsInList(moves, squares::e5, squares::f6, pieces::WHITE_PAWN, pieces::BLACK_PAWN, pieces::NONE, pieces::NONE, pieces::WHITE_PAWN);
 }
@@ -413,7 +422,7 @@ TEST_F(MoveGeneratorTests, TestThat_GeneratePawnMoves_GeneratesEnPassantMovesFor
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::black);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
     CheckMoveIsInList(moves, squares::a4, squares::a3, pieces::BLACK_PAWN, pieces::NONE,       pieces::NONE, pieces::NONE, pieces::NONE);
     CheckMoveIsInList(moves, squares::a4, squares::b3, pieces::BLACK_PAWN, pieces::WHITE_PAWN, pieces::NONE, pieces::NONE, pieces::BLACK_PAWN);
 }
@@ -426,7 +435,7 @@ TEST_F(MoveGeneratorTests, TestThat_PawnCapturesAreNotGeneratedAcrossBoardEdges)
     MoveVector moves;
 	generate_pawn_moves(moves, position, sides::black);
 
-	ASSERT_EQ(1, moves.size());
+	ASSERT_EQ(1, moves.size);
     CheckMoveIsInList(moves, squares::a4, squares::a3, pieces::BLACK_PAWN, pieces::NONE);
 }
 
@@ -445,7 +454,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(14, moves.size());
+	ASSERT_EQ(14, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
     { b8, c8, d8, e8, f8, g8, h8, a7, a6, a5, a4, a3, a2, a1 });
 }
@@ -457,7 +466,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(14, moves.size());
+	ASSERT_EQ(14, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_ROOK, pieces::NONE,
     { e6, e7, e8, e4, e3, e2, e1, d5, c5, b5, a5, f5, g5, h5 });
 }
@@ -469,7 +478,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(14, moves.size());
+	ASSERT_EQ(14, moves.size);
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_ROOK, pieces::NONE,
     { h2, h3, h4, h5, h6, h7, h8, g1, f1, e1, d1, c1, b1, a1 });
 }
@@ -482,7 +491,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(12, moves.size());
+	ASSERT_EQ(12, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
     { b8, c8, d8, e8, f8, g8, h8, a7, a6, a5, a4 });
 
@@ -497,7 +506,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(14, moves.size());
+	ASSERT_EQ(14, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
     { b8, c8, d8, e8, f8, g8, h8, a7, a6, a5, a4, a3, a2 });
 
@@ -512,7 +521,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateRookMoves_GeneratesExpectedMovesForR
     MoveVector moves;
 	generate_rook_moves(moves, position, sides::white);
 
-	ASSERT_EQ(11, moves.size());
+	ASSERT_EQ(11, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_ROOK, pieces::NONE,
 	{ b8, c8, d8, e8, f8, g8, h8, a7, a6, a5, a4 });
 }
@@ -533,7 +542,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_BISHOP, pieces::NONE,
     { b2, c3, d4, e5, f6, g7, h8 });
 }
@@ -546,7 +555,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_BISHOP, pieces::NONE,
     { b2, c3, d4, e5, f6, g7, a1 });
 }
@@ -559,7 +568,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_BISHOP, pieces::NONE,
     { b7, c6, d5, e4, f3, g2, h1 });
 }
@@ -572,7 +581,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(7, moves.size());
+	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_BISHOP, pieces::NONE,
     { g2, f3, e4, d5, c6, b7, a8 });
 }
@@ -585,7 +594,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(9, moves.size());
+	ASSERT_EQ(9, moves.size);
 	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_BISHOP, pieces::NONE,
     { c3, d4, e5, f6, g7, h8, a1, c1, a3 });
 }
@@ -598,7 +607,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(9, moves.size());
+	ASSERT_EQ(9, moves.size);
 	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_BISHOP, pieces::NONE,
     { c3, d4, e5, f6, b2, h8, a1, h6, f8 });
 }
@@ -611,7 +620,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(9, moves.size());
+	ASSERT_EQ(9, moves.size);
 	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_BISHOP, pieces::NONE,
     { a8, c6, d5, e4, f3, g2, h1, a6, c8 });
 }
@@ -624,7 +633,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(9, moves.size());
+	ASSERT_EQ(9, moves.size);
 	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_BISHOP, pieces::NONE,
     { a8, b7, c6, d5, e4, f3, h1, h3, f1 });
 }
@@ -637,7 +646,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(13, moves.size());
+	ASSERT_EQ(13, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8, f4, g3, h2 });
 }
@@ -650,7 +659,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(13, moves.size());
+	ASSERT_EQ(13, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_BISHOP, pieces::NONE,
     { f5, g6, h7, d3, c2, b1, d5, c6, b7, a8, f3, g2, h1 });
 }
@@ -663,7 +672,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(13, moves.size());
+	ASSERT_EQ(13, moves.size);
 	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_BISHOP, pieces::NONE,
     { e5, f6, g7, h8, c3, b2, a1, c5, b6, a7, e3, f2, g1 });
 }
@@ -676,7 +685,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(13, moves.size());
+	ASSERT_EQ(13, moves.size);
 	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_BISHOP, pieces::NONE,
     { e6, f7, g8, c4, b3, a2, c6, b7, a8, e4, f3, g2, h1 });
 }
@@ -690,7 +699,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(12, moves.size());
+	ASSERT_EQ(12, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f6, g7, h8, d4, c3, d6, c7, b8, f4, g3, h2 });
 
@@ -706,7 +715,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(12, moves.size());
+	ASSERT_EQ(12, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, f4, g3, h2 });
 
@@ -722,7 +731,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(11, moves.size());
+	ASSERT_EQ(11, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8 });
 
@@ -738,7 +747,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(11, moves.size());
+	ASSERT_EQ(11, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f4, g3, h2, d4, c3, b2, a1, d6, c7, b8 });
 
@@ -754,7 +763,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(2, moves.size());
+	ASSERT_EQ(2, moves.size);
 	CheckMoveIsInList(moves, squares::a1, squares::b2, pieces::WHITE_BISHOP, pieces::NONE);
 	CheckMoveIsInList(moves, squares::a1, squares::c3, pieces::WHITE_BISHOP, pieces::BLACK_PAWN);
 }
@@ -767,7 +776,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(10, moves.size());
+	ASSERT_EQ(10, moves.size);
 	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_BISHOP, pieces::NONE,
     { d5, e6, f7, g8, b5, a6, d3, e2, f1 });
 
@@ -783,7 +792,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateBishopMoves_GeneratesExpectedMovesFo
     MoveVector moves;
 	generate_bishop_moves(moves, position, sides::white);
 
-	ASSERT_EQ(13, moves.size());
+	ASSERT_EQ(13, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_BISHOP, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8, f4, g3, h2 });
 }
@@ -804,7 +813,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(21, moves.size());
+	ASSERT_EQ(21, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
     { b2, c3, d4, e5, f6, g7, h8, a2, a3, a4, a5, a6, a7, a8, b1, c1, d1, e1, f1, g1, h1 });
 }
@@ -817,7 +826,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(21, moves.size());
+	ASSERT_EQ(21, moves.size);
 	CheckMovesDestinationVarying(moves, squares::h8, pieces::WHITE_QUEEN, pieces::NONE,
     { b2, c3, d4, e5, f6, g7, a1, a8, b8, c8, d8, e8, f8, g8, h7, h6, h5, h4, h3, h2, h1 });
 }
@@ -830,7 +839,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(21, moves.size());
+	ASSERT_EQ(21, moves.size);
 	CheckMovesDestinationVarying(moves, squares::a8, pieces::WHITE_QUEEN, pieces::NONE,
     { b7, c6, d5, e4, f3, g2, h1, a2, a3, a4, a5, a6, a7, a1, h8, b8, c8, d8, e8, f8, g8 });
 }
@@ -843,7 +852,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(21, moves.size());
+	ASSERT_EQ(21, moves.size);
 	CheckMovesDestinationVarying(moves, squares::h1, pieces::WHITE_QUEEN, pieces::NONE,
     { b7, c6, d5, e4, f3, g2, a8, h7, h6, h5, h4, h3, h2, h8, b1, c1, d1, e1, f1, g1, a1 });
 }
@@ -856,7 +865,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(23, moves.size());
+	ASSERT_EQ(23, moves.size);
 	CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_QUEEN, pieces::NONE,
     { a1, c3, d4, e5, f6, g7, h8, c1, a3, b1, b3, b4, b5, b6, b7, b8, a2, c2, d2, e2, f2, g2, h2 });
 }
@@ -869,7 +878,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(23, moves.size());
+	ASSERT_EQ(23, moves.size);
 	CheckMovesDestinationVarying(moves, squares::g7, pieces::WHITE_QUEEN, pieces::NONE,
     { c3, d4, e5, f6, b2, h8, a1, h6, f8, g1, g2, g3, g4, g5, g6, g8, a7, b7, c7, d7, e7, f7, h7 });
 }
@@ -882,7 +891,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(23, moves.size());
+	ASSERT_EQ(23, moves.size);
 	CheckMovesDestinationVarying(moves, squares::b7, pieces::WHITE_QUEEN, pieces::NONE,
     { a8, c6, d5, e4, f3, g2, h1, a6, c8, b1, b3, b4, b5, b6, b2, b8, a7, g7, c7, d7, e7, f7, h7 });
 }
@@ -895,7 +904,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(23, moves.size());
+	ASSERT_EQ(23, moves.size);
 	CheckMovesDestinationVarying(moves, squares::g2, pieces::WHITE_QUEEN, pieces::NONE,
     { a8, b7, c6, d5, e4, f3, h1, h3, f1, g1, g7, g3, g4, g5, g6, g8, a2, c2, d2, e2, f2, b2, h2 });
 }
@@ -908,7 +917,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(27, moves.size());
+	ASSERT_EQ(27, moves.size);
     CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8, f4, g3, h2, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 }
@@ -921,7 +930,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(27, moves.size());
+	ASSERT_EQ(27, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e4, pieces::WHITE_QUEEN, pieces::NONE,
     { f5, g6, h7, d3, c2, b1, d5, c6, b7, a8, f3, g2, h1, e6, e7, e8, e5, e3, e2, e1, a4, b4, c4, d4, f4, g2, h4 });
 }
@@ -934,7 +943,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(27, moves.size());
+	ASSERT_EQ(27, moves.size);
 	CheckMovesDestinationVarying(moves, squares::d4, pieces::WHITE_QUEEN, pieces::NONE,
     { e5, f6, g7, h8, c3, b2, a1, c5, b6, a7, e3, f2, g1, d6, d7, d8, d5, d3, d2, d1, a4, b4, c4, e4, f4, g4, h4 });
 }
@@ -947,7 +956,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(27, moves.size());
+	ASSERT_EQ(27, moves.size);
 	CheckMovesDestinationVarying(moves, squares::d5, pieces::WHITE_QUEEN, pieces::NONE,
     { e6, f7, g8, c4, b3, a2, c6, b7, a8, e4, f3, g2, h1, d6, d7, d8, d4, d3, d2, d1, a5, b5, c5, e5, f5, g5, h5 });
 }
@@ -961,7 +970,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(26, moves.size());
+	ASSERT_EQ(26, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f6, g7, h8, d4, c3, d6, c7, b8, f4, g3, h2, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 
@@ -977,7 +986,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(26, moves.size());
+	ASSERT_EQ(26, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, f4, g3, h2, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 
@@ -993,7 +1002,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(25, moves.size());
+	ASSERT_EQ(25, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 
@@ -1009,7 +1018,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(25, moves.size());
+	ASSERT_EQ(25, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f4, g3, h2, d4, c3, b2, a1, d6, c7, b8, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 
@@ -1025,7 +1034,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(16, moves.size());
+	ASSERT_EQ(16, moves.size);
     CheckMovesDestinationVarying(moves, squares::a1, pieces::WHITE_QUEEN, pieces::NONE,
     { a2, a3, a4, a5, a6, a7, a8, b1, c1, d1, e1, f1, g1, h1, b2 });
 
@@ -1041,7 +1050,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(24, moves.size());
+	ASSERT_EQ(24, moves.size);
 	CheckMovesDestinationVarying(moves, squares::c4, pieces::WHITE_QUEEN, pieces::NONE,
     { d5, e6, f7, g8, b5, a6, d3, e2, f1, c3, c2, c1, c5, c6, c7, c8, a4, b4, d4, e4, f4, g4, h4 });
 
@@ -1057,7 +1066,7 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateQueenMoves_GeneratesExpectedMovesFor
     MoveVector moves;
 	generate_queen_moves(moves, position, sides::white);
 
-	ASSERT_EQ(27, moves.size());
+	ASSERT_EQ(27, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e5, pieces::WHITE_QUEEN, pieces::NONE,
     { f6, g7, h8, d4, c3, b2, a1, d6, c7, b8, f4, g3, h2, e6, e7, e8, e4, e3, e2, e1, a5, b5, c5, d5, f5, g5, h5 });
 }
@@ -1066,9 +1075,10 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateAllMoves_WorksForStartingPosition)
 {
     position.setup_starting_position();
 
-	auto moves = generate_all_moves(position, sides::white);
+	MoveVector moves;
+    generate_all_moves(moves, position, sides::white);
 
-	ASSERT_EQ(20, moves.size());
+	ASSERT_EQ(20, moves.size);
     CheckMovesDestinationVarying(moves, squares::a2, pieces::WHITE_PAWN, pieces::NONE, { a3, a4 });
     CheckMovesDestinationVarying(moves, squares::b2, pieces::WHITE_PAWN, pieces::NONE, { b3, b4 });
     CheckMovesDestinationVarying(moves, squares::c2, pieces::WHITE_PAWN, pieces::NONE, { c3, c4 });

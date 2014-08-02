@@ -140,6 +140,11 @@ namespace chess
         {
             return moves[i];
         }
+
+        OINK_INLINE bool empty() const
+        {
+            return size == 0;
+        }
     };
 }
 
