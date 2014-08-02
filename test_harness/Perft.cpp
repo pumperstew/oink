@@ -73,13 +73,13 @@ static uint64_t perft_nodesonly(int depth, Position &pos, Side side)
     if (depth == 0)
         return 1;
 
-    MoveVector moves = generate_all_moves(pos, side);
+    MoveVector moves;
+    generate_all_moves(moves, pos, side);
 
     uint64_t leaves = 0;
-    size_t num_moves = moves.size();
     Position backup(pos);
 
-    for (size_t i = 0; i < num_moves; ++i)
+    for (uint32_t i = 0; i < moves.size; ++i)
     {
         if (pos.make_move(moves[i]))
         {
@@ -97,12 +97,12 @@ static uint64_t perft_correctness(int depth, Position &pos, Side side)
     if (depth == 0)
         return 1;
  
-    MoveVector moves = generate_all_moves(pos, side);
+    MoveVector moves;
+    generate_all_moves(moves, pos, side);
     bool any = false;
-    size_t num_moves = moves.size();
     Position backup(pos);
 
-    for (size_t i = 0; i < num_moves; ++i)
+    for (uint32_t i = 0; i < moves.size; ++i)
     {
         if (pos.make_move(moves[i]))
         {

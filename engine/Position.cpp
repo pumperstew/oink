@@ -1,5 +1,7 @@
 #include "Position.hpp"
 
+#include <cstdlib>
+
 namespace chess
 {
 	Position::Position()
@@ -142,7 +144,7 @@ namespace chess
         ep_target_square          = squares::NO_SQUARE;
     }
 
-    static inline Bitboard make_castling_mask(Bitboard input)
+    static OINK_INLINE Bitboard make_castling_mask(Bitboard input)
     {
         Bitboard mask;
         // Shift the set bit, if any, down to the right position.

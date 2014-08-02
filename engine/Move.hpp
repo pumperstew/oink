@@ -3,7 +3,7 @@
 
 #include "ChessConstants.hpp"
 
-#include <vector>
+#include <cassert>
 
 namespace chess
 {
@@ -118,7 +118,29 @@ namespace chess
         }
 	};
 
-	typedef std::vector<Move> MoveVector;
+    // Simple movelist structure, avoiding heap allocation.
+    // OINK_TODO: perhaps check if we reach limit, and resize.
+    struct MoveVector
+    {
+        Move     moves[256];
+        uint32_t size;
+
+        MoveVector()
+        {
+            size = 0;
+        }
+
+        OINK_INLINE void push_back(Move move)
+        {
+            moves[size++] = move;
+            assert(size < 256);
+        }
+
+        OINK_INLINE Move operator[](uint32_t i) const
+        {
+            return moves[i];
+        }
+    };
 }
 
 #endif

@@ -22,9 +22,10 @@ namespace chess
         // If this doesn't get bettered, then we have no legal moves.
         result.best_eval = evals::INITIAL_SEARCH_VALUE;
 
-        const MoveVector moves = generate_all_moves(pos, side_moving);
+        MoveVector moves;
+        generate_all_moves(moves, pos, side_moving);
         //std::sort(moves.begin(), moves.end(), [](Move a, Move b) { return a.get_captured_piece() > b.get_captured_piece(); });
-        for (size_t i = 0, num_moves = moves.size(); i < num_moves; ++i)
+        for (uint32_t i = 0, num_moves = moves.size; i < num_moves; ++i)
         {
             Position test = pos;
 
@@ -66,9 +67,10 @@ namespace chess
         result.best_eval = alpha;
         bool any_legal = false;
 
-        const MoveVector moves = generate_all_moves(pos, side_moving);
+        MoveVector moves;
+        generate_all_moves(moves, pos, side_moving);
         //std::sort(moves.begin(), moves.end(), [](Move a, Move b) { return a.get_captured_piece() > b.get_captured_piece(); });
-        for (size_t i = 0, num_moves = moves.size(); i < num_moves; ++i)
+        for (uint32_t i = 0, num_moves = moves.size; i < num_moves; ++i)
         {
             Position test = pos;
 

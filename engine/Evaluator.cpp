@@ -16,13 +16,13 @@ namespace chess
 
         bool in_check = pos.detect_check(king_side);
 
-        MoveVector moves = generate_all_moves(pos, king_side);
-        size_t count = moves.size();
+        MoveVector moves;
+        generate_all_moves(moves, pos, king_side);
 
         Position test(pos);
         bool any_legal = false;
 
-        for (size_t i = 0; i < count; ++i)
+        for (uint32_t i = 0; i < moves.size; ++i)
         {
             any_legal = test.make_move(moves[i]);
             if (any_legal)

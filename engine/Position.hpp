@@ -7,6 +7,7 @@
 #include "Move.hpp"
 
 #include <cassert>
+#include <cstring>
 
 namespace chess
 {

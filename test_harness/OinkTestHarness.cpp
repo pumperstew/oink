@@ -43,8 +43,9 @@ static void play_self(const string &fen)
         // Opening move
         std::random_device rand_dev;
         std::mt19937 rand_engine(10); //rand_dev());
-        auto moves = generate_all_moves(pos, side);
-        int opener = std::uniform_int_distribution<int>(0, (int)moves.size() - 1)(rand_engine);
+        MoveVector moves;
+        generate_all_moves(moves, pos, side);
+        int opener = std::uniform_int_distribution<int>(0, moves.size - 1)(rand_engine);
         pos.make_move(moves[opener]);
         print_move(moves[opener], move_num, side, util::NORMAL, 0);
         pgn_out_move(pgn_file, moves[opener], move_num, side, util::NORMAL);
@@ -210,6 +211,8 @@ static void marcel_6838_epd_test()
             }
         })));
 
+        // TODO: we should really order the queue by the expected nodes at highest depth, and wait for the
+        // thread with fewest nodes. This will keep the CPU busy better. Or, could just poll all threads here ("wait_any").
         if (threads.size() == std::thread::hardware_concurrency() - 1)
         {
             threads.front()->join();
@@ -252,9 +255,9 @@ int main(int argc, char **argv)
     //return 0;
 
     /*perft_bench();
-    return 0;
+    return 0;*/
 
-    perft_correctness();
+    /*perft_correctness();
     return 0;*/
 
     marcel_6838_epd_test();

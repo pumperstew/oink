@@ -18,7 +18,7 @@ namespace chess
             destinations = get_and_clear_first_occ_square(destinations, &dest_square);
 			move.set_destination(dest_square);
 			move.set_captured_piece(position.squares[dest_square]);
-            moves.emplace_back(move);
+            moves.push_back(move);
         }
 	}
 
@@ -32,16 +32,16 @@ namespace chess
 			move.set_captured_piece(position.squares[dest_square]);
 			
 			move.set_promotion_piece(pieces::QUEENS[side]);
-			moves.emplace_back(move);
+			moves.push_back(move);
 			
             move.set_promotion_piece(pieces::ROOKS[side]);
-			moves.emplace_back(move);
+			moves.push_back(move);
 			
             move.set_promotion_piece(pieces::KNIGHTS[side]);
-			moves.emplace_back(move);
+			moves.push_back(move);
 
 			move.set_promotion_piece(pieces::BISHOPS[side]);
-            moves.emplace_back(move);
+            moves.push_back(move);
         }
 	}
 
@@ -54,7 +54,7 @@ namespace chess
 		    move.set_destination(dest_square);
 		    move.set_captured_piece(pieces::PAWNS[swap_side(side)]);
             move.set_en_passant(pieces::PAWNS[side]);
-            moves.emplace_back(move);
+            moves.push_back(move);
         }
 
         // There is a maximum of one EP capture available in a given position for a given pawn.
@@ -242,15 +242,15 @@ namespace chess
 			movingPieceBitboard = get_and_clear_first_occ_square(movingPieceBitboard, &source_sq);
 			move.set_source(source_sq);
 
-//#ifdef OINK_MOVEGEN_DIAGNOSTICS
-//            print_bitboards(
-//            {
-//                std::make_pair(position.whole_board, "whole board"),
-//				std::make_pair(moves::sixbit_diag_masks_a1h8[source_sq], "a1h8 diagmasks for source_sq"),
-//                std::make_pair(moves::sixbit_diag_masks_a8h1[source_sq], "a8h1 diagmasks for source_sq")
-//            },
-//            source_sq);
-//#endif
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+            print_bitboards(
+            {
+                { position.whole_board,                     "whole board"                  },
+                { moves::sixbit_diag_masks_a1h8[source_sq], "a1h8 diagmasks for source_sq" },
+                { moves::sixbit_diag_masks_a8h1[source_sq], "a8h1 diagmasks for source_sq" }
+            },
+            source_sq);
+#endif
             RankFile rank, file;
             square_to_rank_file(source_sq, rank, file);
 
@@ -262,18 +262,18 @@ namespace chess
             assert(projected_a1h8_occ_6bit <= util::FULL_6BITOCC);
 			assert(projected_a8h1_occ_6bit <= util::FULL_6BITOCC);
 
-//#ifdef OINK_MOVEGEN_DIAGNOSTICS
-//            print_bitboard(projected_a1h8_occ_6bit, "projected_a1h8_occ");
-//            print_bitboard(projected_a8h1_occ_6bit, "projected_a8h1_occ");
-//			print_bitboards(
-//            {
-//				std::make_pair(moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit], "a1h8 moves"),
-//				std::make_pair(moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit], "a8h1 moves"),
-//				std::make_pair(destinations, "destinations"),
-//                std::make_pair(position.sides[sides::black], "black")
-//            },
-//            source_sq);
-//#endif
+#ifdef OINK_MOVEGEN_DIAGNOSTICS
+            print_bitboard(projected_a1h8_occ_6bit, "projected_a1h8_occ");
+            print_bitboard(projected_a8h1_occ_6bit, "projected_a8h1_occ");
+			print_bitboards(
+            {
+                { moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit], "a1h8 moves"   },
+                { moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit], "a8h1 moves"   },
+                { destinations,                                               "destinations" },
+                { position.sides[sides::black],                               "black"        }
+            },
+            source_sq);
+#endif
 			generate_moves_from_destinations(destinations, move, moves, position, side);
 		}
 	}
@@ -296,18 +296,13 @@ namespace chess
 		generate_diagonal_slider_moves(moves, position, side, diag_move, position.queens[side]);
 	}
     
-	MoveVector generate_all_moves(const Position &position, Side side)
+	void generate_all_moves(MoveVector &moves, const Position &position, Side side)
     {
-        MoveVector moves;
-        moves.reserve(OINK_MOVE_VECTOR_INITIAL_SIZE);
-
         generate_pawn_moves(moves,   position, side);
         generate_queen_moves(moves,  position, side);
         generate_bishop_moves(moves, position, side);
         generate_rook_moves(moves,   position, side);
         generate_knight_moves(moves, position, side);
         generate_king_moves(moves,   position, side);
-
-        return moves;
     }
 }
