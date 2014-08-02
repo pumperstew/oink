@@ -52,59 +52,14 @@ namespace chess
 		squares[squares::g1] = pieces::WHITE_KNIGHT;
 		squares[squares::h1] = pieces::WHITE_ROOK;
 
-		squares[squares::a2] = pieces::WHITE_PAWN;
-		squares[squares::b2] = pieces::WHITE_PAWN;
-		squares[squares::c2] = pieces::WHITE_PAWN;
-		squares[squares::d2] = pieces::WHITE_PAWN;
-		squares[squares::e2] = pieces::WHITE_PAWN;
-		squares[squares::f2] = pieces::WHITE_PAWN;
-		squares[squares::g2] = pieces::WHITE_PAWN;
-		squares[squares::h2] = pieces::WHITE_PAWN;
+        for (Square square = squares::a2; square <= squares::h2; ++square)
+		    squares[square] = pieces::WHITE_PAWN;
 
-		squares[squares::a3] = pieces::NONE;
-		squares[squares::b3] = pieces::NONE;
-		squares[squares::c3] = pieces::NONE;
-		squares[squares::d3] = pieces::NONE;
-		squares[squares::e3] = pieces::NONE;
-		squares[squares::f3] = pieces::NONE;
-		squares[squares::g3] = pieces::NONE;
-		squares[squares::h3] = pieces::NONE;
+        for (Square square = squares::a3; square <= squares::h6; ++square)
+		    squares[square] = pieces::NONE;
 
-		squares[squares::a4] = pieces::NONE;
-		squares[squares::b4] = pieces::NONE;
-		squares[squares::c4] = pieces::NONE;
-		squares[squares::d4] = pieces::NONE;
-		squares[squares::e4] = pieces::NONE;
-		squares[squares::f4] = pieces::NONE;
-		squares[squares::g4] = pieces::NONE;
-		squares[squares::h4] = pieces::NONE;
-
-		squares[squares::a5] = pieces::NONE;
-		squares[squares::b5] = pieces::NONE;
-		squares[squares::c5] = pieces::NONE;
-		squares[squares::d5] = pieces::NONE;
-		squares[squares::e5] = pieces::NONE;
-		squares[squares::f5] = pieces::NONE;
-		squares[squares::g5] = pieces::NONE;
-		squares[squares::h5] = pieces::NONE;
-
-		squares[squares::a6] = pieces::NONE;
-		squares[squares::b6] = pieces::NONE;
-		squares[squares::c6] = pieces::NONE;
-		squares[squares::d6] = pieces::NONE;
-		squares[squares::e6] = pieces::NONE;
-		squares[squares::f6] = pieces::NONE;
-		squares[squares::g6] = pieces::NONE;
-		squares[squares::h6] = pieces::NONE;
-
-		squares[squares::a7] = pieces::BLACK_PAWN;
-		squares[squares::b7] = pieces::BLACK_PAWN;
-		squares[squares::c7] = pieces::BLACK_PAWN;
-		squares[squares::d7] = pieces::BLACK_PAWN;
-		squares[squares::e7] = pieces::BLACK_PAWN;
-		squares[squares::f7] = pieces::BLACK_PAWN;
-		squares[squares::g7] = pieces::BLACK_PAWN;
-		squares[squares::h7] = pieces::BLACK_PAWN;
+        for (Square square = squares::a7; square <= squares::h7; ++square)
+		    squares[square] = pieces::BLACK_PAWN;
 
 		squares[squares::a8] = pieces::BLACK_ROOK;
 		squares[squares::b8] = pieces::BLACK_KNIGHT;
