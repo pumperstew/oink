@@ -10,7 +10,7 @@
 
 namespace chess
 {
-	static void generate_moves_from_destinations(Bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side)
+	static void generate_moves_from_destinations(Bitboard destinations, Move move, MoveVector &moves, const Position &position)
 	{
         Square dest_square;
 		while (destinations)
@@ -22,7 +22,7 @@ namespace chess
         }
 	}
 
-    static void generate_moves_from_destinations_with_promotion(Bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side)
+    static void generate_moves_from_destinations_with_promotion(Bitboard destinations, Move move, MoveVector &moves, const Position &position, Side side)
 	{
         Square dest_square;
 		while (destinations)
@@ -45,7 +45,7 @@ namespace chess
         }
 	}
 
-    static void generate_ep_move(Bitboard destinations, Move &move, MoveVector &moves, const Position &position, Side side)
+    static void generate_ep_move(Bitboard destinations, Move move, MoveVector &moves, const Position &position, Side side)
 	{
         if (destinations)
         {
@@ -73,7 +73,7 @@ namespace chess
 		move.set_source(square);
 
         Bitboard destinations = moves::king_moves[square] & ~position.sides[side];
-		generate_moves_from_destinations(destinations, move, moves, position, side);
+		generate_moves_from_destinations(destinations, move, moves, position);
 
         if (side == sides::white && square == squares::e1)
         {
@@ -81,10 +81,9 @@ namespace chess
             {
                 assert(position.squares[squares::h1] == pieces::WHITE_ROOK);
 
-                if (util::nil == (position.whole_board & moves::white_kingside_castling_mask))
+                if (!(position.whole_board & moves::white_kingside_castling_mask))
                 {
                     move.set_destination(squares::g1);
-                    move.set_captured_piece(pieces::NONE);
                     move.set_castling(pieces::WHITE_KING);
                     moves.push_back(move);
                 }
@@ -94,10 +93,9 @@ namespace chess
             {
                 assert(position.squares[squares::a1] == pieces::WHITE_ROOK);
 
-                if (util::nil == (position.whole_board & moves::white_queenside_castling_mask))
+                if (!(position.whole_board & moves::white_queenside_castling_mask))
                 {
                     move.set_destination(squares::c1);
-                    move.set_captured_piece(pieces::NONE);
                     move.set_castling(pieces::WHITE_KING);
                     moves.push_back(move);
                 }
@@ -109,10 +107,9 @@ namespace chess
             {
                 assert(position.squares[squares::h8] == pieces::BLACK_ROOK);
 
-                if (util::nil == (position.whole_board & moves::black_kingside_castling_mask))
+                if (!(position.whole_board & moves::black_kingside_castling_mask))
                 {
                     move.set_destination(squares::g8);
-                    move.set_captured_piece(pieces::NONE);
                     move.set_castling(pieces::BLACK_KING);
                     moves.push_back(move);
                 }
@@ -122,10 +119,9 @@ namespace chess
             {
                 assert(position.squares[squares::a8] == pieces::BLACK_ROOK);
 
-                if (util::nil == (position.whole_board & moves::black_queenside_castling_mask))
+                if (!(position.whole_board & moves::black_queenside_castling_mask))
                 {
                     move.set_destination(squares::c8);
-                    move.set_captured_piece(pieces::NONE);
                     move.set_castling(pieces::BLACK_KING);
                     moves.push_back(move);
                 }
@@ -138,7 +134,7 @@ namespace chess
 		Move move;
 		move.set_piece(pieces::KNIGHTS[side]);
 
-        Bitboard knights = position.knights[side];
+        Bitboard knights        = position.knights[side];
         Bitboard not_other_king = ~position.kings[swap_side(side)];
         Bitboard not_my_side    = ~position.sides[side];
 
@@ -149,7 +145,7 @@ namespace chess
 			move.set_source(source_sq);
 
             Bitboard destinations = moves::knight_moves[source_sq] & not_my_side & not_other_king;
-			generate_moves_from_destinations(destinations, move, moves, position, side);
+			generate_moves_from_destinations(destinations, move, moves, position);
         }
     }
 
@@ -158,15 +154,15 @@ namespace chess
 		Move move;
 		move.set_piece(pieces::PAWNS[side]);
 
-        Bitboard pawns = position.pawns[side];
+        Bitboard pawns          = position.pawns[side];
+        Bitboard other_side     = position.sides[swap_side(side)];
+        Bitboard not_other_king = ~position.kings[swap_side(side)];
 
         Square source_sq;
         while (pawns)
         {
             pawns = get_and_clear_first_occ_square(pawns, &source_sq);
 			move.set_source(source_sq);
-            move.set_en_passant(pieces::NONE);
-            move.set_promotion_piece(pieces::NONE);
 
 			RankFile rank = square_to_rank(source_sq);
 			Bitboard whole_board = position.whole_board;
@@ -179,7 +175,7 @@ namespace chess
 			Bitboard destinations = moves::pawn_moves[side][source_sq] & ~whole_board;
 
             // Normal captures
-			destinations |= moves::pawn_captures[side][source_sq] & position.sides[swap_side(side)] & ~position.kings[swap_side(side)];
+			destinations |= moves::pawn_captures[side][source_sq] & other_side & not_other_king;
             bool promoting = (rank == sides::ABOUT_TO_PROMOTE[side]); //if we're on the 7th or 2nd ranks, we're gonna promote.
 			
             if (promoting)
@@ -188,7 +184,7 @@ namespace chess
             }
             else
             {
-                generate_moves_from_destinations(destinations, move, moves, position, side);
+                generate_moves_from_destinations(destinations, move, moves, position);
                 
                 // EP captures are never promotions.
                 // EP captures: ep_target_square is set if there is a valid target for an EP capture. 
@@ -204,17 +200,16 @@ namespace chess
 
 	static void generate_rank_file_slider_moves(MoveVector &moves, const Position &position, Side side, Move &move, Bitboard moving_piece_bitboard)
 	{
-        Square   source_sq;
-        RankFile rank, file;
-
         Bitboard not_other_king = ~position.kings[swap_side(side)];
         Bitboard not_my_side    = ~position.sides[side];
 
 		while (moving_piece_bitboard)
 		{
+            Square source_sq;
             moving_piece_bitboard = get_and_clear_first_occ_square(moving_piece_bitboard, &source_sq);
 			move.set_source(source_sq);
 			
+            RankFile rank, file;
 			square_to_rank_file(source_sq, rank, file);
 
 			Bitboard rank_occ_6bit = get_6bit_rank_occupancy(position.whole_board, rank);
@@ -223,7 +218,7 @@ namespace chess
 									  & not_my_side
                                       & not_other_king;
 
-			generate_moves_from_destinations(destinations, move, moves, position, side);
+			generate_moves_from_destinations(destinations, move, moves, position);
 		}
 	}
 
@@ -234,12 +229,15 @@ namespace chess
 		generate_rank_file_slider_moves(moves, position, side, move, position.rooks[side]);
     }
 
-	static void generate_diagonal_slider_moves(MoveVector &moves, const Position &position, Side side, Move &move, Bitboard movingPieceBitboard)
+	static void generate_diagonal_slider_moves(MoveVector &moves, const Position &position, Side side, Move &move, Bitboard moving_piece_bitboard)
 	{
-        Square source_sq;
-		while (movingPieceBitboard)
+        Bitboard not_other_king = ~position.kings[swap_side(side)];
+        Bitboard not_my_side    = ~position.sides[side];
+
+		while (moving_piece_bitboard)
 		{
-			movingPieceBitboard = get_and_clear_first_occ_square(movingPieceBitboard, &source_sq);
+            Square source_sq;
+			moving_piece_bitboard = get_and_clear_first_occ_square(moving_piece_bitboard, &source_sq);
 			move.set_source(source_sq);
 
 #ifdef OINK_MOVEGEN_DIAGNOSTICS
@@ -257,7 +255,8 @@ namespace chess
 			Bitboard projected_a1h8_occ_6bit = project_occupancy_from_a1h8_to6bit(position.whole_board, rank, file);
 			Bitboard projected_a8h1_occ_6bit = project_occupancy_from_a8h1_to6bit(position.whole_board, rank, file);
 			Bitboard destinations = (moves::diag_moves_a1h8[source_sq][projected_a1h8_occ_6bit] | moves::diag_moves_a8h1[source_sq][projected_a8h1_occ_6bit])
-				                     & ~position.sides[side] & ~position.kings[swap_side(side)];
+				                     & not_my_side
+                                     & not_other_king;
 
             assert(projected_a1h8_occ_6bit <= util::FULL_6BITOCC);
 			assert(projected_a8h1_occ_6bit <= util::FULL_6BITOCC);
@@ -274,7 +273,7 @@ namespace chess
             },
             source_sq);
 #endif
-			generate_moves_from_destinations(destinations, move, moves, position, side);
+			generate_moves_from_destinations(destinations, move, moves, position);
 		}
 	}
 
