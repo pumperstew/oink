@@ -13,6 +13,8 @@ set(OINK_ENGINE_SRC
 	Evaluator.cpp
 	Search.hpp
 	Search.cpp
+	Perft.hpp
+	Perft.cpp
 )
 
 

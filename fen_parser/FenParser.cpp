@@ -87,7 +87,7 @@ namespace chess { namespace fen
                 else if (state == ExpectPiecePositions)
                     pos.place_piece(pieces::BLACK_KING, square);
                 else
-                     bad_fen(c);
+                    bad_fen(c);
                 break;
             case 'p':
                 if (state != ExpectPiecePositions)

@@ -1,23 +1,20 @@
 #include "OinkTestHarness.hpp"
-#include "Perft.hpp"
 
 #include <engine/Position.hpp>
 #include <engine/BasicOperations.hpp>
 #include <engine/MoveGenerator.hpp>
 #include <engine/Evaluator.hpp>
 #include <engine/Search.hpp>
+#include <engine/Perft.hpp>
 #include <fen_parser/FenParser.hpp>
 #include <display/PgnWriter.hpp>
 #include <display/ConsoleDisplay.hpp>
 
-#include <thread>
 #include <random>
 #include <iostream>
 #include <fstream>
 #include <cstdio>
-#include <memory>
-#include <atomic>
-#include <queue>
+#include <chrono>
 
 #define LOG_ERROR(message, ...) fprintf(stderr, "\n***ERROR*** " message "\n", ##__VA_ARGS__)
 
@@ -121,130 +118,49 @@ static void play_self(const string &fen)
     }
 }
 
+class StopWatch
+{
+    chrono::high_resolution_clock::time_point start;
+public:
+    StopWatch()
+    {
+        start = chrono::high_resolution_clock::now();
+    }
+    
+    chrono::milliseconds::rep elapsed_ms() const
+    {
+        auto elapsed = chrono::high_resolution_clock::now() - start;
+        return chrono::duration_cast<chrono::milliseconds>(elapsed).count();
+    }
+};
+
+static bool perft_driver_nodesonly(Position pos, const int depth, Side side, uint64_t nodes_expected, bool quiet)
+{
+    StopWatch watch;
+    uint64_t node_count = perft_nodesonly(depth, pos, side);
+
+    int64_t elapsed_ms = watch.elapsed_ms();
+    uint64_t nps = elapsed_ms ? (uint64_t)(1000 * node_count / elapsed_ms) : 0;
+
+    if (!quiet)
+    {
+        cout.imbue(std::locale(""));
+        cout << "\nperft("        << depth << ")"
+                << "\nNodes: "       << node_count << (node_count == nodes_expected ? "        OK" : " ===============> FAIL")
+                << "\nElapsed: "     << elapsed_ms/1000. << "s"
+                << "\nNodes/second " << nps
+                << endl;
+    }
+    return node_count == nodes_expected;
+}
+
 static void perft_bench()
 {
-    auto perft_results = &kiwipete_perft_expectations;
     Side side_to_move;
-    Position pos = fen::parse_fen(perft_results->fen, nullptr, &side_to_move);
+    Position pos = fen::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", nullptr, &side_to_move);
 
-    for (int i = 0; i < 4; ++i)
-        perft_driver_nodesonly(pos, perft_results->depth_supported, perft_results->side_to_move, perft_results->nodes_expected[perft_results->depth_supported]);
-}
-
-static void perft_correctness()
-{
-    auto perft_results = &kiwipete_perft_expectations;
-
-    Side side_to_move;
-    Position pos = fen::parse_fen(perft_results->fen, nullptr, &side_to_move);
-    assert(perft_results->side_to_move == side_to_move);
-    print_position(pos);
-
-    for (int depth = 0; depth <= perft_results->depth_supported; ++depth)
-    {
-        perft_driver_correctness(pos, depth, *perft_results);
-    }
-}
-
-// OINK_TODO: find a home for this
-std::pair<chess::Position, std::vector<uint64_t>> parse_epd_line(const std::string &line, int *fullmove_count, Side *side_to_move)
-{
-    //OINK_TODO: not fully robust
-    auto start_of_node_info = line.rfind("d1");
-    if (start_of_node_info == std::string::npos)
-    {
-        throw std::runtime_error("No node info in EPD line");
-    }
-
-    auto pos = fen::parse_fen(line.substr(0, start_of_node_info), fullmove_count, side_to_move);
-
-    //OINK_TODO: obviously dreadful
-    std::vector<uint64_t> node_info;
-    for (auto i = start_of_node_info; i < line.size(); )
-    {
-        i += 2;
-        auto next_space = line.find(' ', i + 1);
-        if (next_space == std::string::npos)
-            break;
-        node_info.push_back(_atoi64(line.substr(i, next_space - i).c_str()));
-        i = line.find("; ", i);
-        if (i == std::string::npos)
-            break;
-        i += 2;
-    }
-
-    return std::make_pair(pos, node_info);
-}
-
-// OINK_TODO: find a home for this
-static void marcel_6838_epd_test()
-{
-    ifstream epd_test_stream("../../../engine/tests/marcel_6838.epd");
-    if (!epd_test_stream)
-    {
-        cout << "Failed to open test positions file 'marcel_6838.epd'" << endl;
-        return;
-    }
-
-    string line;
-    int line_num = 0;
-    std::queue<std::unique_ptr<std::thread>> threads;
-    std::atomic<int> fail_line = -1;
-
-    while (getline(epd_test_stream, line))
-    {
-        ++line_num;
-
-        Side side_to_move;
-        auto results = parse_epd_line(line, nullptr, &side_to_move);
-        
-        threads.push(std::unique_ptr<std::thread>(new std::thread([=, &fail_line]
-        {
-            for (int depth = 1; depth <= results.second.size(); ++depth)
-            {
-                if (!perft_driver_nodesonly(results.first, depth, side_to_move, results.second[depth - 1], true))
-                {
-                    if (fail_line.load(std::memory_order_acquire) < 0)
-                        fail_line.store(line_num, std::memory_order_release);
-                    return;
-                }
-            }
-        })));
-
-        // TODO: we should really order the queue by the expected nodes at highest depth, and wait for the
-        // thread with fewest nodes. This will keep the CPU busy better. Or, could just poll all threads here ("wait_any").
-        if (threads.size() == std::thread::hardware_concurrency() - 1)
-        {
-            threads.front()->join();
-            threads.pop();
-        }
-
-        if (fail_line.load(std::memory_order_acquire) >= 0)
-        {
-            break;
-        }
-
-        if (line_num % 50 == 0)
-        {
-            cout << "line = " << line_num << endl;
-        }
-    }
-
-    while (!threads.empty())
-    {
-        threads.front()->join();
-        threads.pop();
-    }
-
-    int fail = fail_line.load(std::memory_order_acquire);
-    if (fail >= 0)
-    {
-        cout << "failed at line " << fail << endl;
-    }
-    else
-    {
-        cout << "ok: " << line_num << " lines passed" << endl;
-    }
+    for (int i = 0; i < 3; ++i)
+        perft_driver_nodesonly(pos, 6, side_to_move, 119060324, false);
 }
 
 int main(int argc, char **argv)
@@ -254,12 +170,6 @@ int main(int argc, char **argv)
     //play_self("");//"rnbqkbnr/pp1ppppp/8/2p5/8/2N5/PPPPPPPP/R1BQKBNR/");
     //return 0;
 
-    /*perft_bench();
-    return 0;*/
-
-    /*perft_correctness();
-    return 0;*/
-
-    marcel_6838_epd_test();
+    perft_bench();
     return 0;
 }

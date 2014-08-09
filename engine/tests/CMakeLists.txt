@@ -6,7 +6,8 @@ set(OINK_ENGINE_TESTS_SRC
 	PositionTests.cpp
 	MoveGeneratorTests.cpp
 	SearchTests.cpp
+	PerftBasedTests.cpp
 )
-set(OINK_ENGINE_TESTS_LIBS OinkEngine OinkDisplay)
+set(OINK_ENGINE_TESTS_LIBS OinkEngine OinkDisplay OinkFenParser)
 
 ADD_GTEST_TEST(OinkEngineTests "${OINK_ENGINE_TESTS_SRC}" "${OINK_ENGINE_TESTS_LIBS}")
