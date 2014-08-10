@@ -4,6 +4,7 @@
 #include <engine/BasicOperations.hpp>
 
 #include <cstdio>
+#include <sstream>
 
 #include <Windows.h>
 
@@ -166,5 +167,37 @@ namespace chess
         }
 
         printf("\n%d.%s %s%s (%+.2f)\n", move_num, prefix, algebraic.c_str(), suffix, eval);
+    }
+
+    // Outputs a minimal coord-string, like e2e4, a7a8q, etc.
+    string move_to_coordtext(Move move)
+    {
+        if (move.get_castling() != pieces::NONE)
+        {
+            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
+                return "O-O-O";
+            else
+                return "O-O";
+        }
+
+        ostringstream result;
+
+        RankFile rank, file;
+        Square source = move.get_source();
+        square_to_rank_file(source, rank, file);
+
+        result << (char)('a' + file);
+        result << (char)('1' + rank);
+
+        Square dest = move.get_destination();
+        square_to_rank_file(dest, rank, file);
+
+        result << (char)('a' + file);
+        result << (char)('1' + rank);
+
+        if (move.get_promotion_piece() != pieces::NONE)
+            result << (char)tolower(pieces::symbols[move.get_promotion_piece()]);
+
+        return result.str();
     }
 }

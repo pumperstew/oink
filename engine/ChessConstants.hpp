@@ -198,6 +198,8 @@ namespace chess
     {
         const Side white = 0;
         const Side black = 1;
+        const Side none  = 2;
+        const Side analyze = 3;
 
         const RankFile STARTING_PAWN_RANKS[] = { ranks::second,    ranks::seventh    };
 		const RankFile ABOUT_TO_PROMOTE[]    = { ranks::seventh,   ranks::second     };

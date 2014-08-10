@@ -167,9 +167,27 @@ int main(int argc, char **argv)
 {
     constants_initialize();
 
-    //play_self("");//"rnbqkbnr/pp1ppppp/8/2p5/8/2N5/PPPPPPPP/R1BQKBNR/");
-    //return 0;
+    while (1)
+    {
+        string input;
+        cin >> input;
 
-    perft_bench();
+        if (input == "perft")
+        {
+            cout << "Running perft benchmark..." << endl;
+            perft_bench();
+            cout << "\nDone\n" << endl;
+        }
+        else if (input == "play_self") //"rnbqkbnr/pp1ppppp/8/2p5/8/2N5/PPPPPPPP/R1BQKBNR/"
+        {
+            cout << "Playing self..." << endl;
+            play_self("");
+        }
+        else if (input == "q")
+            break;
+        else
+            cout << "Unrecognised command: " << input << endl;
+    }
+
     return 0;
 }

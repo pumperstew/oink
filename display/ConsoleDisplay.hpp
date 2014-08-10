@@ -30,6 +30,8 @@ namespace chess
     }
 
     void print_move(Move move, int move_num, Side side, util::PositionType pos_characteristics, PosEvaluationFrac eval);
+
+    std::string move_to_coordtext(Move move);
 }
 
 #endif // CONSOLE_DISPLAY_HPP
