@@ -189,6 +189,7 @@ namespace chess
         const Bitboard source_bitboard          = util::one << source;
         const Bitboard dest_bitboard            = util::one << dest;
         const Bitboard source_and_dest_bitboard = source_bitboard | dest_bitboard;
+        unsigned char castling;
 
         switch (moving_piece)
         {
@@ -233,7 +234,8 @@ namespace chess
         case pieces::WHITE_KING:
         case pieces::BLACK_KING:
 
-            switch (move.get_castling())
+            castling = move.get_castling();
+            switch (castling)
             {
             case moves::CASTLING_NONE:
                 break;
@@ -245,7 +247,7 @@ namespace chess
             }
 
             Bitboard rook_mask;
-            switch (move.get_castling())
+            switch (castling)
             {
             case moves::CASTLING_WHITE_KINGSIDE:
                 if (square_attacked(squares::f1, sides::white))
@@ -255,52 +257,44 @@ namespace chess
                 squares[squares::h1] = pieces::NONE;
                 squares[squares::f1] = pieces::WHITE_ROOK;
                 rook_mask = squarebits::h1 | squarebits::f1;
-                rooks[side] ^= rook_mask;
-                sides[side] ^= rook_mask;
-                whole_board ^= rook_mask;
                 break;
 
             case moves::CASTLING_WHITE_QUEENSIDE:
                 if (square_attacked(squares::d1, sides::white))
                     return false;
-
-                // Update the rook positions manually:
                 squares[squares::a1] = pieces::NONE;
                 squares[squares::d1] = pieces::WHITE_ROOK;
                 rook_mask = squarebits::a1 | squarebits::d1;
-                rooks[side] ^= rook_mask;
-                sides[side] ^= rook_mask;
-                whole_board ^= rook_mask;
                 break;
 
             case moves::CASTLING_BLACK_KINGSIDE:
                 if (square_attacked(squares::f8, sides::black))
                     return false;
-
-                // Update the rook positions manually:
                 squares[squares::h8] = pieces::NONE;
                 squares[squares::f8] = pieces::BLACK_ROOK;
                 rook_mask = squarebits::h8 | squarebits::f8;
-                rooks[side] ^= rook_mask;
-                sides[side] ^= rook_mask;
-                whole_board ^= rook_mask;
                 break;
 
             case moves::CASTLING_BLACK_QUEENSIDE:
                 if (square_attacked(squares::d8, sides::black))
                         return false;
-
-                // Update the rook positions manually:
                 squares[squares::a8] = pieces::NONE;
                 squares[squares::d8] = pieces::BLACK_ROOK;
                 rook_mask = squarebits::a8 | squarebits::d8;
-                rooks[side] ^= rook_mask;
-                sides[side] ^= rook_mask;
-                whole_board ^= rook_mask;
                 break;
 
             default:
                 break;
+            }
+
+            switch (castling)
+            {
+            case moves::CASTLING_NONE:
+                break;
+            default:
+                rooks[side] ^= rook_mask;
+                sides[side] ^= rook_mask;
+                whole_board ^= rook_mask;
             }
    
             // Always do this:

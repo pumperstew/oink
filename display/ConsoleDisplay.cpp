@@ -4,7 +4,6 @@
 #include <engine/BasicOperations.hpp>
 
 #include <cstdio>
-#include <sstream>
 #include <tuple>
 
 #include <Windows.h>
@@ -40,9 +39,23 @@ namespace chess
 		};
 	}
 
+    // ifdef windows, etc..
+
+    typedef HANDLE OSHandleType;
+
+    static OSHandleType get_std_handle()
+    {
+        return ::GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+
+    static void colour_stdout(OSHandleType std_out_handle, console_colours::Values colour)
+    {
+        ::SetConsoleTextAttribute(std_out_handle, colour);
+    }
+
 	void print_bitboards(const vector<pair<Bitboard, string>> &boards, Square highlight_square)
 	{
-		HANDLE std_out_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		auto std_out_handle = get_std_handle();
 
 		vector<string> offsets;
 		printf("\n");
@@ -75,14 +88,14 @@ namespace chess
 					Bitboard value = (boards[j].first >> index) & util::one;
 					if (index == highlight_square)
 					{
-						::SetConsoleTextAttribute(std_out_handle, console_colours::RED);
+						colour_stdout(std_out_handle, console_colours::RED);
 					} 
 					else if (value)
 					{
-						::SetConsoleTextAttribute(std_out_handle, console_colours::BLUE);
+						colour_stdout(std_out_handle, console_colours::BLUE);
 					}
 					printf("%d ", (int)value);
-					::SetConsoleTextAttribute(std_out_handle, console_colours::LGREY);
+					colour_stdout(std_out_handle, console_colours::LGREY);
 				}
 				printf("%s", offsets[j].c_str());
 			}
@@ -125,10 +138,10 @@ namespace chess
 
     void print_move(Move move, int move_num, Side side, util::PositionType pos_characteristics, PosEvaluationFrac eval)
     {
-        const char *prefix = side == sides::black ? ".." : "";
-
-        const char *suffixes[] = { "", "+", "#", " 1/2-1/2 (stalemate)", " 1/2-1/2 (insufficient material)" };
-        const char *suffix     = suffixes[pos_characteristics];
+        const char * const suffixes[] = { "", "+", "#", " 1/2-1/2 (stalemate)", " 1/2-1/2 (insufficient material)" };
+        
+        const char * const prefix = side == sides::black ? ".." : "";
+        const char * const suffix = suffixes[pos_characteristics];
 
         if (move.is_queenside_castle())
         {
@@ -141,40 +154,37 @@ namespace chess
             return;
         }
 
-        string algebraic;
+        char algebraic[9];
+        char *c = algebraic;
 
         Piece moving_piece = move.get_piece();
         if (moving_piece != pieces::WHITE_PAWN && moving_piece != pieces::BLACK_PAWN)
         {
-            algebraic = pieces::symbols[moving_piece];
+            *c++ = pieces::symbols[moving_piece];
         }
 
-        Square source = move.get_source();
-        RankFile rank, file;
-        square_to_rank_file(source, rank, file);
+        auto rank_file_info = get_source_dest_rank_and_file(move);
 
-        algebraic += 'a' + file;
-        algebraic += '1' + rank;
-
-        algebraic += move.get_captured_piece() != pieces::NONE ? "x" : "-";
-
-        Square dest = move.get_destination();
-        square_to_rank_file(dest, rank, file);
-
-        algebraic += 'a' + file;
-        algebraic += '1' + rank;
+        *c++ = (char)('a' + get<1>(rank_file_info));
+        *c++ = (char)('1' + get<0>(rank_file_info));
+        *c++ = move.get_captured_piece() != pieces::NONE ? 'x' : '-';
+        *c++ = (char)('a' + get<3>(rank_file_info));
+        *c++ = (char)('1' + get<2>(rank_file_info));
 
         if (move.get_en_passant() != pieces::NONE)
         {
-            algebraic += "ep";
+            *c++ = 'e';
+            *c++ = 'p';
         }
         else if (move.get_promotion_piece() != pieces::NONE)
         {
-            algebraic += "=";
-            algebraic += pieces::symbols[move.get_promotion_piece()];
+            *c++ = '=';
+            *c++ = pieces::symbols[move.get_promotion_piece()];
         }
 
-        printf("\n%d.%s %s%s (%+.2f)\n", move_num, prefix, algebraic.c_str(), suffix, eval);
+        *c = 0;
+
+        printf("\n%d.%s %s%s (%+.2f)\n", move_num, prefix, algebraic, suffix, eval);
     }
 
     // Outputs a minimal coord-string, like e2e4, a7a8q, etc.
