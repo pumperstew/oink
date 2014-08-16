@@ -36,9 +36,7 @@ namespace chess
     OINK_INLINE Bitboard get_and_clear_first_occ_square(Bitboard b, Square *square)
     {
         assert(b);
-
         *square = get_first_occ_square(b);
-        //b ^= (util::one << *square); // Clear this bit from b
         return b & (b - 1);
     }
 	
@@ -50,7 +48,7 @@ namespace chess
     // White pieces are always odd
     OINK_INLINE Side get_piece_side(Piece piece)
     {
-        return util::one ^ (piece & util::one);
+        return sides::black ^ (piece & 0x1);
     }
 
     // Get occupancy of given rank on [ranks::first, ranks::eighth].
@@ -104,8 +102,13 @@ namespace chess
     // to eliminate jumps over pieces by pawns going 2nd -> 4th rank.
     OINK_INLINE Bitboard exclude_fourth_or_fifth_rank_if_third_or_sixth_occupied(Bitboard pos, Side side) 
     {
+        // OINK_TODO: slightly faster, one would think:
+        /*const RankFile my_third_rank[] = { ranks::third, ranks::sixth };
+        Bitboard my_third_rank_occ = pos & moves::eightbit_rank_masks[my_third_rank[side]];
+        return pos | ((my_third_rank_occ << 8) >> (16 * side));*/
+
         if (side == sides::white)
-            return pos | ((pos & moves::eightbit_rank_masks[ranks::third]) << 8); //OINK_TODO: ugly if test
+            return pos | ((pos & moves::eightbit_rank_masks[ranks::third]) << 8);
         else
             return pos | ((pos & moves::eightbit_rank_masks[ranks::sixth]) >> 8); 
     }
