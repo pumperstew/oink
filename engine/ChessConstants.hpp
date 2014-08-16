@@ -298,6 +298,13 @@ namespace chess
 
     namespace moves
     {
+        // For a move's castling field
+        const unsigned char CASTLING_NONE            = 0;
+        const unsigned char CASTLING_WHITE_KINGSIDE  = 1; 
+        const unsigned char CASTLING_WHITE_QUEENSIDE = 2;
+        const unsigned char CASTLING_BLACK_KINGSIDE  = 3;
+        const unsigned char CASTLING_BLACK_QUEENSIDE = 4;
+
         // 512 bytes
         const Bitboard king_moves[util::NUM_SQUARES] = 
         {

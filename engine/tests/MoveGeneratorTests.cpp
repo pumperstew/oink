@@ -83,7 +83,7 @@ void SetWhiteQueenAt(Position &position, Square square)
 	position.update_sides();
 }
 
-void CheckMoveIsInList(const MoveVector &moves, Square source, Square destination, Piece piece, Piece captured, Piece promotion = pieces::NONE, Piece castling = pieces::NONE, Piece enPassant = pieces::NONE)
+void CheckMoveIsInList(const MoveVector &moves, Square source, Square destination, Piece piece, Piece captured, Piece promotion = pieces::NONE, unsigned char castling = moves::CASTLING_NONE, Piece enPassant = pieces::NONE)
 {
     uint32_t i;
     for (i = 0; i < moves.size; ++i)
@@ -236,8 +236,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForW
 	ASSERT_EQ(7, moves.size);
 	CheckMovesDestinationVarying(moves, squares::e1, pieces::WHITE_KING, pieces::NONE, { d1, d2, e2, f2, f1 });
     
-    CheckMoveIsInList(moves, squares::e1, squares::g1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
-    CheckMoveIsInList(moves, squares::e1, squares::c1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, pieces::WHITE_KING);
+    CheckMoveIsInList(moves, squares::e1, squares::g1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, moves::CASTLING_WHITE_KINGSIDE);
+    CheckMoveIsInList(moves, squares::e1, squares::c1, pieces::WHITE_KING, pieces::NONE, pieces::NONE, moves::CASTLING_WHITE_QUEENSIDE);
 }
 
 // Castling: black
@@ -254,8 +254,8 @@ TEST_F(MoveGeneratorTests, TestThat_GenerateKingMoves_GeneratesExpectedMovesForB
 	ASSERT_EQ(7, moves.size);
     CheckMovesDestinationVarying(moves, squares::e8, pieces::BLACK_KING, pieces::NONE, { d8, d7, e7, f7, f8 });
 
-    CheckMoveIsInList(moves, squares::e8, squares::g8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, pieces::BLACK_KING);
-    CheckMoveIsInList(moves, squares::e8, squares::c8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, pieces::BLACK_KING);
+    CheckMoveIsInList(moves, squares::e8, squares::g8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, moves::CASTLING_BLACK_KINGSIDE);
+    CheckMoveIsInList(moves, squares::e8, squares::c8, pieces::BLACK_KING, pieces::NONE, pieces::NONE, moves::CASTLING_BLACK_QUEENSIDE);
 }
 
 //******************************************************************************************************************************************

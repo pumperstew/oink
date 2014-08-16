@@ -12,12 +12,13 @@ namespace chess
         const char *suffixes[] = { "", "+", "#", " 1/2-1/2", " 1/2-1/2" };
         const char *suffix     = suffixes[pos_characteristics];
 
-        if (move.get_castling() != pieces::NONE)
+        if (move.is_queenside_castle())
         {
-            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
-                stream << "O-O-O";
-            else
-                stream << "O-O";
+            stream << "O-O-O";
+        }
+        else if (move.is_kingside_castle())
+        {
+            stream << "O-O";
         }
         else
         {

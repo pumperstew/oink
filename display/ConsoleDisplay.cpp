@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <sstream>
+#include <tuple>
 
 #include <Windows.h>
 
@@ -41,7 +42,6 @@ namespace chess
 
 	void print_bitboards(const vector<pair<Bitboard, string>> &boards, Square highlight_square)
 	{
-#ifndef DISPLAY_DISABLED
 		HANDLE std_out_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 
 		vector<string> offsets;
@@ -88,7 +88,6 @@ namespace chess
 			}
 			printf("\n");
 		}
-#endif
 	}
 	
 	void print_bitboard(Bitboard board, const char* title, Square highlight_square)
@@ -112,6 +111,18 @@ namespace chess
         print_bitboard(b, nullptr, highlight_square);
     }
 
+    static std::tuple<RankFile, RankFile, RankFile, RankFile> get_source_dest_rank_and_file(Move move)
+    {
+        RankFile rs, fs, rd, fd;
+        Square source = move.get_source();
+        square_to_rank_file(source, rs, fs);
+
+        Square dest = move.get_destination();
+        square_to_rank_file(dest, rd, fd);
+
+        return make_tuple(rs, fs, rd, fd);
+    }
+
     void print_move(Move move, int move_num, Side side, util::PositionType pos_characteristics, PosEvaluationFrac eval)
     {
         const char *prefix = side == sides::black ? ".." : "";
@@ -119,18 +130,15 @@ namespace chess
         const char *suffixes[] = { "", "+", "#", " 1/2-1/2 (stalemate)", " 1/2-1/2 (insufficient material)" };
         const char *suffix     = suffixes[pos_characteristics];
 
-        if (move.get_castling() != pieces::NONE)
+        if (move.is_queenside_castle())
         {
-            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
-            {
-                printf("\n%d.%s O-O-O%s (%+.2f)\n", move_num, prefix, suffix, eval);
-            }
-            else
-            {
-                printf("\n%d.%s O-O%s (%+.2f)\n", move_num, prefix, suffix, eval);
-            }
+            printf("\n%d.%s O-O-O%s (%+.2f)\n", move_num, prefix, suffix, eval);
             return;
-
+        }
+        else if (move.is_kingside_castle())
+        {
+            printf("\n%d.%s O-O%s (%+.2f)\n", move_num, prefix, suffix, eval);
+            return;
         }
 
         string algebraic;
@@ -172,32 +180,22 @@ namespace chess
     // Outputs a minimal coord-string, like e2e4, a7a8q, etc.
     string move_to_coordtext(Move move)
     {
-        if (move.get_castling() != pieces::NONE)
-        {
-            if (move.get_destination() == squares::c1 || move.get_destination() == squares::c8)
-                return "O-O-O";
-            else
-                return "O-O";
-        }
+        if (move.is_queenside_castle())
+            return "O-O-O";
+        else if (move.is_kingside_castle())
+            return "O-O";
 
-        ostringstream result;
+        char result[6] = {0};
+        auto rank_file_info = get_source_dest_rank_and_file(move);
 
-        RankFile rank, file;
-        Square source = move.get_source();
-        square_to_rank_file(source, rank, file);
-
-        result << (char)('a' + file);
-        result << (char)('1' + rank);
-
-        Square dest = move.get_destination();
-        square_to_rank_file(dest, rank, file);
-
-        result << (char)('a' + file);
-        result << (char)('1' + rank);
+        result[0] = (char)('a' + get<1>(rank_file_info));
+        result[1] = (char)('1' + get<0>(rank_file_info));
+        result[2] = (char)('a' + get<3>(rank_file_info));
+        result[3] = (char)('1' + get<2>(rank_file_info));
 
         if (move.get_promotion_piece() != pieces::NONE)
-            result << (char)tolower(pieces::symbols[move.get_promotion_piece()]);
+            result[4] = (char)tolower(pieces::symbols[move.get_promotion_piece()]);
 
-        return result.str();
+        return result;
     }
 }

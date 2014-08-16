@@ -52,7 +52,7 @@ namespace chess
                 {
                     auto pos_type = test_position_type(pos, swap_side(side));
                     if (moves[i].get_captured_piece() != pieces::NONE)  ++results.capture_count;
-                    if (moves[i].get_castling() != pieces::NONE)        ++results.castle_count;
+                    if (moves[i].get_castling() != moves::CASTLING_NONE)++results.castle_count;
                     if (moves[i].get_promotion_piece() != pieces::NONE) ++results.prom_count;
                     if (moves[i].get_en_passant() != pieces::NONE)      ++results.ep_count;
                     if (pos_type == util::CHECK)                        ++results.check_count;

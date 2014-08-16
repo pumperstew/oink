@@ -72,7 +72,7 @@ namespace chess
             return (data & PROMOTION_MASK) >> PROMOTION_OFFSET;
 	    }
 
-        OINK_INLINE Piece get_castling() const
+        OINK_INLINE unsigned char get_castling() const
 	    {
 		    return (data & CASTLING_MASK) >> CASTLING_OFFSET;
 	    }
@@ -115,6 +115,19 @@ namespace chess
         OINK_INLINE void set_en_passant(Piece piece)
         {
             data = (data & ~EP_MASK) | (piece << EP_OFFSET);
+        }
+
+        // Helpers
+
+        OINK_INLINE bool is_queenside_castle() const
+        {
+            unsigned char castling = get_castling();
+            return castling && !(castling & 0x1);
+        }
+
+        OINK_INLINE bool is_kingside_castle() const
+        {
+            return (get_castling() & 0x1);
         }
 	};
 

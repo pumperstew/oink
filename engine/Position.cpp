@@ -186,8 +186,6 @@ namespace chess
         const Square   source                   = move.get_source();
         const Square   dest                     = move.get_destination();
         const Side     side                     = get_piece_side(moving_piece);
-        const RankFile source_rank              = square_to_rank(source);
-        const RankFile dest_rank                = square_to_rank(dest);
         const Bitboard source_bitboard          = util::one << source;
         const Bitboard dest_bitboard            = util::one << dest;
         const Bitboard source_and_dest_bitboard = source_bitboard | dest_bitboard;
@@ -200,7 +198,7 @@ namespace chess
             move_common_first_stage(moving_piece, side, source, dest, source_and_dest_bitboard);
 
             // EP square is on third/sixth rank, if applicable:
-            ep_target_square = abs(dest_rank - source_rank) == 2 ? source + sides::NEXT_RANK_OFFSET[side] : squares::NO_SQUARE;
+            ep_target_square = abs(square_to_rank(dest) - square_to_rank(source)) == 2 ? source + sides::NEXT_RANK_OFFSET[side] : squares::NO_SQUARE;
 
             if (move.get_en_passant() != pieces::NONE)
             {
@@ -235,69 +233,81 @@ namespace chess
         case pieces::WHITE_KING:
         case pieces::BLACK_KING:
 
-            if (move.get_castling() != pieces::NONE)
+            switch (move.get_castling())
             {
+            case moves::CASTLING_NONE:
+                break;
+            default:
                 assert(!captured_piece);
-
-                // canna castle through check
+                // Canna castle out of, or through, check
                 if (detect_check(side))
                     return false;
+            }
 
-                Bitboard rook_mask;
+            Bitboard rook_mask;
+            switch (move.get_castling())
+            {
+            case moves::CASTLING_WHITE_KINGSIDE:
+                if (square_attacked(squares::f1, sides::white))
+                    return false;
 
-                if (dest == squares::g1)
-                {
-                    if (square_attacked(squares::f1, sides::white))
-                        return false;
-
-                    rook_mask = squarebits::h1 | squarebits::f1;
-                    squares[squares::h1] = pieces::NONE;
-                    squares[squares::f1] = pieces::WHITE_ROOK;
-                }
-                else if (dest == squares::c1)
-                {
-                    if (square_attacked(squares::d1, sides::white))
-                        return false;
-
-                    rook_mask = squarebits::a1 | squarebits::d1;
-                    squares[squares::a1] = pieces::NONE;
-                    squares[squares::d1] = pieces::WHITE_ROOK;
-                }
-                else if (dest == squares::g8)
-                {
-                    if (square_attacked(squares::f8, sides::black))
-                        return false;
-
-                    rook_mask = squarebits::h8 | squarebits::f8;
-                    squares[squares::h8] = pieces::NONE;
-                    squares[squares::f8] = pieces::BLACK_ROOK;
-                }
-                else if (dest == squares::c8)
-                {
-                    if (square_attacked(squares::d8, sides::black))
-                        return false;
-
-                    rook_mask = squarebits::a8 | squarebits::d8;
-                    squares[squares::a8] = pieces::NONE;
-                    squares[squares::d8] = pieces::BLACK_ROOK;
-                }
-
-                move_common_first_stage(moving_piece, side, source, dest, source_and_dest_bitboard);
-                move_common_second_stage(captured_piece, side, dest_bitboard, source_bitboard, source_and_dest_bitboard);
-
-                castling_rights &= ~sides::CASTLING_RIGHTS_ANY[side];
-
+                // Update the rook positions manually:
+                squares[squares::h1] = pieces::NONE;
+                squares[squares::f1] = pieces::WHITE_ROOK;
+                rook_mask = squarebits::h1 | squarebits::f1;
                 rooks[side] ^= rook_mask;
                 sides[side] ^= rook_mask;
                 whole_board ^= rook_mask;
-            }
-            else
-            {
-                move_common_first_stage(moving_piece, side, source, dest, source_and_dest_bitboard);
-                move_common_second_stage(captured_piece, side, dest_bitboard, source_bitboard, source_and_dest_bitboard);
+                break;
 
-                castling_rights &= ~sides::CASTLING_RIGHTS_ANY[side];
+            case moves::CASTLING_WHITE_QUEENSIDE:
+                if (square_attacked(squares::d1, sides::white))
+                    return false;
+
+                // Update the rook positions manually:
+                squares[squares::a1] = pieces::NONE;
+                squares[squares::d1] = pieces::WHITE_ROOK;
+                rook_mask = squarebits::a1 | squarebits::d1;
+                rooks[side] ^= rook_mask;
+                sides[side] ^= rook_mask;
+                whole_board ^= rook_mask;
+                break;
+
+            case moves::CASTLING_BLACK_KINGSIDE:
+                if (square_attacked(squares::f8, sides::black))
+                    return false;
+
+                // Update the rook positions manually:
+                squares[squares::h8] = pieces::NONE;
+                squares[squares::f8] = pieces::BLACK_ROOK;
+                rook_mask = squarebits::h8 | squarebits::f8;
+                rooks[side] ^= rook_mask;
+                sides[side] ^= rook_mask;
+                whole_board ^= rook_mask;
+                break;
+
+            case moves::CASTLING_BLACK_QUEENSIDE:
+                if (square_attacked(squares::d8, sides::black))
+                        return false;
+
+                // Update the rook positions manually:
+                squares[squares::a8] = pieces::NONE;
+                squares[squares::d8] = pieces::BLACK_ROOK;
+                rook_mask = squarebits::a8 | squarebits::d8;
+                rooks[side] ^= rook_mask;
+                sides[side] ^= rook_mask;
+                whole_board ^= rook_mask;
+                break;
+
+            default:
+                break;
             }
+   
+            // Always do this:
+            move_common_first_stage(moving_piece, side, source, dest, source_and_dest_bitboard);
+            move_common_second_stage(captured_piece, side, dest_bitboard, source_bitboard, source_and_dest_bitboard);
+            castling_rights &= ~sides::CASTLING_RIGHTS_ANY[side];
+
             break;
 
         case pieces::WHITE_ROOK:

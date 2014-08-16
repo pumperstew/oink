@@ -6,9 +6,7 @@
 #include <display/ConsoleDisplay.hpp>
 #include <fen_parser/FenParser.hpp>
 
-#include <cstdlib>
 #include <cstdio>
-#include <cstring>
 #include <string>
 #include <chrono>
 
@@ -88,13 +86,21 @@ Move parse_move(const Position &pos, const string &move_str)
     {
         move.set_en_passant(pieces::PAWNS[get_piece_side(move.get_piece())]);
     }
-    else if (move.get_piece() == pieces::WHITE_KING && ((source_sq == squares::e1 && dest_sq == squares::g1) || (source_sq == squares::e1 && dest_sq == squares::c1)))
+    else if (move.get_piece() == pieces::WHITE_KING && (source_sq == squares::e1 && dest_sq == squares::g1))
     {
-        move.set_castling(pieces::WHITE_KING);
+        move.set_castling(moves::CASTLING_WHITE_KINGSIDE);
     }
-    else if (move.get_piece() == pieces::BLACK_KING && ((source_sq == squares::e8 && dest_sq == squares::g8) || (source_sq == squares::e8 && dest_sq == squares::c8)))
+    else if (move.get_piece() == pieces::WHITE_KING && (source_sq == squares::e1 && dest_sq == squares::c1))
     {
-        move.set_castling(pieces::BLACK_KING);
+        move.set_castling(moves::CASTLING_WHITE_QUEENSIDE);
+    }
+    else if (move.get_piece() == pieces::BLACK_KING && (source_sq == squares::e8 && dest_sq == squares::g8))
+    {
+        move.set_castling(moves::CASTLING_BLACK_KINGSIDE);
+    }
+    else if (move.get_piece() == pieces::BLACK_KING && (source_sq == squares::e8 && dest_sq == squares::c8))
+    {
+        move.set_castling(moves::CASTLING_BLACK_QUEENSIDE);
     }
 
     return move;
@@ -102,7 +108,7 @@ Move parse_move(const Position &pos, const string &move_str)
 
 PosEvaluation search_best_move(const Position &pos, Side side_to_move, Move *move, Move *ponder_move)
 {
-    MoveAndEval result = alpha_beta(side_to_move, pos, 5, -2*evals::MATE_SCORE, 2*evals::MATE_SCORE);
+    MoveAndEval result = alpha_beta(side_to_move, pos, 6, -2*evals::MATE_SCORE, 2*evals::MATE_SCORE);
     *move = result.best_move;
     return result.best_eval;
 }

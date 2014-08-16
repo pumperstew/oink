@@ -84,7 +84,7 @@ namespace chess
                 if (!(position.whole_board & moves::white_kingside_castling_mask))
                 {
                     move.set_destination(squares::g1);
-                    move.set_castling(pieces::WHITE_KING);
+                    move.set_castling(moves::CASTLING_WHITE_KINGSIDE);
                     moves.push_back(move);
                 }
             }
@@ -96,7 +96,7 @@ namespace chess
                 if (!(position.whole_board & moves::white_queenside_castling_mask))
                 {
                     move.set_destination(squares::c1);
-                    move.set_castling(pieces::WHITE_KING);
+                    move.set_castling(moves::CASTLING_WHITE_QUEENSIDE);
                     moves.push_back(move);
                 }
             }
@@ -110,7 +110,7 @@ namespace chess
                 if (!(position.whole_board & moves::black_kingside_castling_mask))
                 {
                     move.set_destination(squares::g8);
-                    move.set_castling(pieces::BLACK_KING);
+                    move.set_castling(moves::CASTLING_BLACK_KINGSIDE);
                     moves.push_back(move);
                 }
             }
@@ -122,7 +122,7 @@ namespace chess
                 if (!(position.whole_board & moves::black_queenside_castling_mask))
                 {
                     move.set_destination(squares::c8);
-                    move.set_castling(pieces::BLACK_KING);
+                    move.set_castling(moves::CASTLING_BLACK_QUEENSIDE);
                     moves.push_back(move);
                 }
             }
