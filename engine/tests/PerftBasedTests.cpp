@@ -102,7 +102,7 @@ protected:
 
 TEST_F(PerftBasedTests, TestPerftStartingPosition)
 {
-    Side side_to_move;
+    Side side_to_move = sides::none;
     Position pos = fen::parse_fen(starting_position_perft_expectations.fen, nullptr, &side_to_move);
     ASSERT_EQ(starting_position_perft_expectations.side_to_move, side_to_move);
     print_position(pos);
@@ -113,8 +113,8 @@ TEST_F(PerftBasedTests, TestPerftStartingPosition)
 
 TEST_F(PerftBasedTests, TestPerftKiwiPete)
 {
-    Side side_to_move;
-    Position pos = fen::parse_fen(kiwipete_perft_expectations.fen);
+    Side side_to_move = sides::none;
+    Position pos = fen::parse_fen(kiwipete_perft_expectations.fen, nullptr, &side_to_move);
     ASSERT_EQ(kiwipete_perft_expectations.side_to_move, side_to_move);
     print_position(pos);
 
@@ -165,7 +165,7 @@ TEST_F(PerftBasedTests, Marcel6838_EPD_Test)
     {
         ++line_num;
 
-        Side side_to_move;
+        Side side_to_move = sides::none;
         auto results = parse_epd_line(line, nullptr, &side_to_move);
         
         threads.push(std::unique_ptr<std::thread>(new std::thread([=, &fail_line]
